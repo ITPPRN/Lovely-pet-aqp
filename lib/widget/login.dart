@@ -1,7 +1,7 @@
 import 'dart:convert';
+import 'package:form_field_validator/form_field_validator.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:form_field_validator/form_field_validator.dart';
 import 'package:lovly_pet_app/model/exception_login.dart';
 import 'package:lovly_pet_app/model/profile.dart';
 import 'package:lovly_pet_app/screen/landing_screen.dart';
@@ -11,14 +11,14 @@ import 'package:lovly_pet_app/unity/alert_dialog.dart';
 import 'package:lovly_pet_app/unity/api_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class LoginWidget extends StatefulWidget {
+  const LoginWidget({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<LoginWidget> createState() => _LoginWidgetState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginWidgetState extends State<LoginWidget> {
   final formKey = GlobalKey<FormState>();
   Profile profile = Profile();
 
@@ -223,7 +223,8 @@ class _LoginPageState extends State<LoginPage> {
       ); // ข้อมูลที่จะส่ง
 
       if (response.statusCode == 200) {
-        routSer(response.body);
+        // ignore: use_build_context_synchronously
+        routSer(response.body, context);
       } else {
         ExceptionLogin exceptionModel =
             ExceptionLogin.fromJson(jsonDecode(response.body));
@@ -236,14 +237,11 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Future<void> routSer(String token) async {
+  Future<void> routSer(String token, BuildContext context) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     preferences.setString('token', token);
 
-    MaterialPageRoute rout = MaterialPageRoute(
-      builder: (context) => const LandingPage(),
-    );
     // ignore: use_build_context_synchronously
-    Navigator.pushAndRemoveUntil(context, rout, (route) => false);
+    Navigator.of(context).pop();
   }
 }

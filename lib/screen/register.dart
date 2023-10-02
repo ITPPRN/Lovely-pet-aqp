@@ -1,10 +1,15 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
+import 'package:lovly_pet_app/model/exception_login.dart';
 import 'package:lovly_pet_app/model/profile.dart';
 import 'package:http/http.dart' as http;
+import 'package:lovly_pet_app/model/response_register.dart';
+import 'package:lovly_pet_app/screen/uplode_profile.dart';
 import 'package:lovly_pet_app/shape_screen/bottom_shape_clipper_register.dart';
 import 'package:lovly_pet_app/unity/alert_dialog.dart';
+import 'package:lovly_pet_app/unity/api_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -33,7 +38,7 @@ class _RegisterState extends State<Register> {
           Container(
             height: MediaQuery.of(context).size.height,
             width: MediaQuery.of(context).size.width,
-            color: const Color.fromARGB(255, 255, 184, 0),
+            color: Colors.amber.shade700,
             child: SafeArea(
               top: true,
               bottom: true,
@@ -286,7 +291,7 @@ class _RegisterState extends State<Register> {
   String ipc = "192.168.1.114";
 
   Future<void> postData() async {
-    final url = Uri.parse("http://192.168.1.104:8080/user/register");
+    final url = Uri.parse("${ApiRouter.pathAPI}/user/register");
     try {
       final response = await http.post(
         url,
@@ -305,15 +310,31 @@ class _RegisterState extends State<Register> {
       ); // ข้อมูลที่จะส่ง
 
       if (response.statusCode == 200) {
+        ResponseRegister res =
+            ResponseRegister.fromJson(jsonDecode(response.body));
         // ignore: use_build_context_synchronously
-        successfullyApplied(context,
-            "สมัครสมาชิกสำเร็จ \n โปรดไปยืนยันอีเมลล์ผู้ใช้ก่อนเข้าสู่ระบบ");
+        routSer(res.id!);
       } else {
+        ExceptionLogin exceptionModel =
+            ExceptionLogin.fromJson(jsonDecode(response.body));
         // ignore: use_build_context_synchronously
-        errorDialog(context, response.body);
+        errorDialog(context, '${exceptionModel.error}');
       }
     } catch (e) {
-      //TUDO: catch
+      // ignore: use_build_context_synchronously
+      errorDialog(context, '$e');
+      print('$e');
     }
+  }
+
+  Future<void> routSer(int id) async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    preferences.setString('id', id.toString());
+
+    MaterialPageRoute rout = MaterialPageRoute(
+      builder: (context) => const UplodeProfile(),
+    );
+    // ignore: use_build_context_synchronously
+    Navigator.pushAndRemoveUntil(context, rout, (route) => false);
   }
 }

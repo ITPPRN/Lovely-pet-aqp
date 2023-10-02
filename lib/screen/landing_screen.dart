@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:lovly_pet_app/screen/test/test.dart';
 import 'package:lovly_pet_app/unity/log_out.dart';
+import 'package:lovly_pet_app/widget/cart.dart';
+import 'package:lovly_pet_app/widget/clinic_list.dart';
+import 'package:lovly_pet_app/widget/history_service.dart';
+import 'package:lovly_pet_app/widget/list_booking.dart';
+import 'package:lovly_pet_app/widget/pet.dart';
+import 'package:lovly_pet_app/widget/user_profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LandingPage extends StatefulWidget {
@@ -10,7 +17,7 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
-  Widget currentWidget = LandingPage();
+  Widget currentWidget = const ClinicList();
   String? token;
 
   Future<void> findU() async {
@@ -22,7 +29,6 @@ class _LandingPageState extends State<LandingPage> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     findU();
   }
@@ -30,13 +36,9 @@ class _LandingPageState extends State<LandingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Landing Page"),
-      ),
+      appBar: AppBar(),
       drawer: showDrawer(),
-      body: Center(
-        child: Text(token == null ? 'Landing' : '$token'),
-      ),
+      body: currentWidget,
     );
   }
 
@@ -45,39 +47,48 @@ class _LandingPageState extends State<LandingPage> {
           children: <Widget>[
             headeDrawer(),
             clinicList(),
-            userDataList(),
-            shoppingCart(),
-            singOut()
+            userProfile(),
+            petList(),
+            listBooking(),
+            cart(),
+            historyService(),
+            aa(),
+            singOut(),
           ],
         ),
       );
 
   UserAccountsDrawerHeader headeDrawer() {
     return UserAccountsDrawerHeader(
-        decoration: const BoxDecoration(
-            image: DecorationImage(
-                image: AssetImage('images/bg_dr.jpg'), fit: BoxFit.cover)),
-        currentAccountPicture: Container(
-          width: 100,
-          height: 100,
-          decoration: const ShapeDecoration(
-              color: Colors.white,
-              shape: CircleBorder(),
-              image: DecorationImage(
-                  image: AssetImage('images/Untitled-1.png'),
-                  fit: BoxFit.fill)),
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+            image: AssetImage('images/bg_dr.jpg'), fit: BoxFit.cover),
+      ),
+      currentAccountPicture: Container(
+        width: 100,
+        height: 100,
+        decoration: const ShapeDecoration(
+          color: Colors.white,
+          shape: CircleBorder(),
+          image: DecorationImage(
+              image: AssetImage('images/Untitled-1.png'), fit: BoxFit.fill),
         ),
-        accountName: Padding(
-          padding: const EdgeInsets.only(left: 10),
-          child: Text(
-            "",
-            style: const TextStyle(color: Colors.white),
-          ),
+      ),
+      accountName: const Padding(
+        padding: EdgeInsets.only(left: 10),
+        child: Text(
+          "",
+          style: TextStyle(color: Colors.white),
         ),
-        accountEmail: const Padding(
-          padding: EdgeInsets.only(left: 10),
-          child: Text("Wellcome", style: TextStyle(color: Colors.white)),
-        ));
+      ),
+      accountEmail: const Padding(
+        padding: EdgeInsets.only(left: 10),
+        child: Text(
+          "Wellcome",
+          style: TextStyle(color: Colors.white),
+        ),
+      ),
+    );
   }
 
   ListTile clinicList() {
@@ -85,37 +96,86 @@ class _LandingPageState extends State<LandingPage> {
       leading: const Icon(Icons.home),
       title: const Text("หน้าหลัก"),
       onTap: () {
-        setState(() {
-          currentWidget = LandingPage();
-        });
+        currentWidget = const ClinicList();
+        setState(() {});
 
         Navigator.pop(context);
       },
     );
   }
 
-  ListTile userDataList() {
+  ListTile userProfile() {
     return ListTile(
-      leading: const Icon(Icons.person),
+      leading: const Icon(Icons.person_2_outlined),
       title: const Text("ข้อมูลผู้ใช้"),
       onTap: () {
-        setState(() {
-          currentWidget = LandingPage();
-        });
+        currentWidget = const UserProfile();
+        setState(() {});
 
         Navigator.pop(context);
       },
     );
   }
 
-  ListTile shoppingCart() {
+  ListTile petList() {
     return ListTile(
-      leading: const Icon(Icons.shopping_cart),
-      title: const Text("ตระกร้าสินค้า"),
+      leading: const Icon(Icons.pets),
+      title: const Text("รายชื่อสัตว์เลี้ยง"),
       onTap: () {
-        setState(() {
-          currentWidget = LandingPage();
-        });
+        currentWidget = const PetList();
+        setState(() {});
+
+        Navigator.pop(context);
+      },
+    );
+  }
+
+  ListTile listBooking() {
+    return ListTile(
+      leading: const Icon(Icons.feed_outlined),
+      title: const Text("รายการจอง"),
+      onTap: () {
+        currentWidget = const ListBooking();
+        setState(() {});
+
+        Navigator.pop(context);
+      },
+    );
+  }
+
+  ListTile cart() {
+    return ListTile(
+      leading: const Icon(Icons.shopping_cart_outlined),
+      title: const Text("ตระกร้าคำสั่งจอง"),
+      onTap: () {
+        currentWidget = const Cart();
+        setState(() {});
+
+        Navigator.pop(context);
+      },
+    );
+  }
+
+  ListTile historyService() {
+    return ListTile(
+      leading: const Icon(Icons.history),
+      title: const Text("ประวัติการรับบริการ"),
+      onTap: () {
+        currentWidget = const HistoryService();
+        setState(() {});
+
+        Navigator.pop(context);
+      },
+    );
+  }
+
+  ListTile aa() {
+    return ListTile(
+      leading: const Icon(Icons.temple_buddhist_outlined),
+      title: const Text("aa"),
+      onTap: () {
+        currentWidget = const TestScreen();
+        setState(() {});
 
         Navigator.pop(context);
       },

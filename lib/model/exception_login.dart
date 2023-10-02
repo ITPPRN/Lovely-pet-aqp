@@ -12,10 +12,10 @@ class ExceptionLogin {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['timestamp'] = this.timestamp;
-    data['status'] = this.status;
-    data['error'] = this.error;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['timestamp'] = timestamp;
+    data['status'] = status;
+    data['error'] = error;
     return data;
   }
 }

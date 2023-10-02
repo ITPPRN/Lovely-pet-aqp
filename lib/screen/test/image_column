@@ -1,0 +1,125 @@
+// import 'dart:convert';
+// import 'dart:typed_data';
+// import 'package:http/http.dart' as http;
+// import 'package:flutter/material.dart';
+// import 'package:lovly_pet_app/model/exception_login.dart';
+// import 'package:lovly_pet_app/unity/api_router.dart';
+// import 'package:lovly_pet_app/unity/get_name_image.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
+
+// class TestScreen extends StatefulWidget {
+//   const TestScreen({super.key});
+
+//   @override
+//   State<TestScreen> createState() => _TestScreenState();
+// }
+
+// class _TestScreenState extends State<TestScreen> {
+//   final imageService = ImageService();
+
+//   String? token;
+//   Uint8List? imageData;
+
+//   List<String> images = [];
+
+//   Future<void> findU() async {
+//     SharedPreferences preferences = await SharedPreferences.getInstance();
+//     token = preferences.getString('token');
+//     setState(() {});
+//     gg();
+//   }
+
+//   Future<dynamic> getIm(String? name) async {
+//     if (token != null) {
+//       final url = Uri.parse("${ApiRouter.pathAPI}/hotel/get-images");
+//       try {
+//         final response = await http.post(
+//           url,
+//           headers: {
+//             'Content-Type': 'application/json',
+//             'Authorization': 'Bearer $token',
+//           },
+//           body: json.encode(
+//             {'name': name},
+//           ),
+//         );
+
+//         if (response.statusCode == 200) {
+//           final responseData = Uint8List.fromList(response.bodyBytes);
+//           return responseData;
+//         } else {
+//           ExceptionLogin exceptionModel =
+//               ExceptionLogin.fromJson(jsonDecode(response.body));
+//           print(response.body);
+//           print('getImage exception = ${exceptionModel.error}');
+//           return null;
+//           // ignore: use_build_context_synchronously
+//           //errorDialog(context,
+//           //    'eqqqqq = ${exceptionModel.error} stats = ${response.statusCode}');
+//           //return []; // Return an empty list in case of an error
+//         }
+//       } catch (e) {
+//         print('getImage catch = $e');
+//         return null;
+//         // ignore: use_build_context_synchronously
+//         //errorDialog(context, '$e');
+//         //return []; // Return an empty list in case of an exception
+//       }
+//     }
+//     return null;
+//   }
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     findU();
+//   }
+
+//   void gg() async {
+//     try {
+//       images =
+//           await imageService.getImageName(token, SubPath.getListHotelImage, 1);
+//       setState(() {});
+//     } catch (e) {
+//       print("ผิดพลาดที่หน้านี้ $e");
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Stack(
+//       children: [
+//         Padding(
+//           padding: const EdgeInsets.only(top: 50),
+//           child: ListView.builder(
+//             itemCount: images.length,
+//             itemBuilder: (context, index) {
+//               String imageUrl = images[index];
+//               return FutureBuilder<dynamic>(
+//                 future: getIm(imageUrl),
+//                 builder: (context, snapshot) {
+//                   if (snapshot.connectionState == ConnectionState.waiting) {
+//                     return CircularProgressIndicator(); // หรืออะไรก็ตามที่คุณต้องการแสดงระหว่างรอ
+//                   } else if (snapshot.hasError) {
+//                     return Text('เกิดข้อผิดพลาด: ${snapshot.error}');
+//                   } else if (snapshot.hasData) {
+//                     return Image.memory(
+//                       snapshot.data!,
+//                       width: 300,
+//                     );
+//                   } else {
+//                     return Container(
+//                       height: 100,
+//                       width: 100,
+//                       color: Colors.amber,
+//                     );
+//                   }
+//                 },
+//               );
+//             },
+//           ),
+//         ),
+//       ],
+//     );
+//   }
+// }

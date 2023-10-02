@@ -1,0 +1,361 @@
+import 'package:flutter/material.dart';
+import 'package:lovly_pet_app/model/json-to-dart-model/list_clinic.dart';
+import 'package:lovly_pet_app/unity/alert_dialog.dart';
+import 'package:lovly_pet_app/unity/api_router.dart';
+import 'package:lovly_pet_app/unity/get_name_image.dart';
+import 'package:lovly_pet_app/unity/show_image.dart';
+import 'package:lovly_pet_app/widget/list_room.dart';
+
+class DataClinic extends StatefulWidget {
+  //const ListRoom({super.key});
+  final ListClinicModel? id; // ตัวแปรสำหรับรับข้อมูล
+  final String? token;
+
+  const DataClinic({super.key, required this.id, required this.token});
+
+  @override
+  State<DataClinic> createState() => _DataClinicState();
+}
+
+class _DataClinicState extends State<DataClinic> {
+  int idRoom = 0;
+  final imageService = ImageService();
+
+  void navigate(int? id) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return ListRoom(id: id);
+    }));
+  }
+
+  void navigateShowImage(List<String>? images) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          return ShowImage(token: widget.token, images: images);
+        },
+      ),
+    );
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
+      body: buildBody(context),
+      bottomNavigationBar: buildBottomAppBar(),
+    );
+  }
+
+  BottomAppBar buildBottomAppBar() {
+    return BottomAppBar(
+        color: Colors.white,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all<Color>(
+                      Colors.amber.shade700), // สีพื้นหลัง
+                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                          50), // ปรับขนาดโดยกำหนดรัศมีที่ต้องการ
+                    ),
+                  ),
+                  elevation: MaterialStateProperty.all<double>(20),
+                  minimumSize: MaterialStateProperty.all<Size>(
+                      const Size(120, 40)), // ขนาดขั้นต่ำของปุ่ม
+                ),
+                onPressed: () {
+                  navigate(widget.id!.id);
+                },
+                child: const Text(
+                  'ดูห้องพัก',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            )
+          ],
+        ));
+  }
+
+  ListView buildBody(BuildContext context) {
+    return ListView(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 15),
+          child: SizedBox(
+            height: 200,
+            child: buildImages(widget.id),
+          ),
+        ),
+        buildCardNameClinic(),
+        buildCardAdditionalNotes(),
+        buildCardLocation(),
+      ],
+    );
+  }
+
+  Card buildCardLocation() {
+    return Card(
+      elevation: 20, // ความลึกของเงา
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15), // ปรับรูปร่างของ Card
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            children: [
+              const Align(
+                alignment: Alignment.bottomLeft,
+                child: Text(
+                  'ที่อยู่',
+                  style: TextStyle(fontSize: 20),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: Text(widget.id!.location.toString()),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Container(
+              width: 100,
+              height: 100,
+              color: Colors.pink,
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Card buildCardAdditionalNotes() {
+    return Card(
+      elevation: 20, // ความลึกของเงา
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15), // ปรับรูปร่างของ Card
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            const Align(
+              alignment: FractionalOffset.centerLeft,
+              child: Text(
+                'เกี่ยวกับ',
+                style: TextStyle(fontSize: 30),
+              ),
+            ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                  '${widget.id!.additionalNotes.toString()}\n test01\n test02 \n dgdgrdg'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Padding buildCardNameClinic() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Card(
+        elevation: 20, // ความลึกของเงา
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10), // ปรับรูปร่างของ Card
+        ),
+        child: Column(
+          children: [
+            Align(
+              alignment: Alignment.topLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: Text(
+                  widget.id!.hotelName.toString(),
+                  style: const TextStyle(
+                      fontSize: 30, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children:
+                        List.generate(widget.id!.rating!.floor(), (index) {
+                      return const Icon(Icons.star,
+                          color: Colors.yellow,
+                          size: 30); // แสดงดาวสีเหลืองขนาด 30 พิกเซล
+                    }),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
+                    child: Row(
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.only(left: 50),
+                          child: Icon(Icons.location_on),
+                        ),
+                        Text('ที่อยู่: ${widget.id!.location.toString()}'),
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            ),
+            buildReviewButton()
+          ],
+        ),
+      ),
+    );
+  }
+
+  Align buildReviewButton() {
+    List<String> stringList = ["ไม่มีคะแนน", "แย่", "พอใช้", "ดี", "ดีเยี่ยม"];
+    String text = stringList[widget.id!.rating!.floor()];
+    String level = '${widget.id!.rating} $text';
+    return Align(
+      alignment: Alignment.bottomLeft,
+      child: TextButton(
+        onPressed: () {},
+        child: Text(
+          "$level จำนวนรีวิว >",
+          style: const TextStyle(color: Colors.black),
+        ),
+      ),
+    );
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+
+  Future<List<String>> getNameListImages(int? id) async {
+    try {
+      List<String> nameImages1 = await imageService.getImageName(
+          widget.token, SubPath.getListHotelImage, id);
+      return nameImages1;
+    } catch (e) {
+      // ignore: use_build_context_synchronously
+      errorDialog(context, 'getNameListImages = $e');
+      return [];
+    }
+  }
+
+  FutureBuilder<List<String>> buildImages(ListClinicModel? clinic) {
+    return FutureBuilder<List<String>>(
+      future: getNameListImages(clinic!.id),
+      builder: (context, snapshot) {
+        //final images = snapshot.data![index];
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          // ในขณะที่รอข้อมูล
+          return const CircularProgressIndicator();
+        } else if (snapshot.hasError) {
+          // หากเกิดข้อผิดพลาด
+          return Text('เกิดข้อผิดพลาด: ${snapshot.error}');
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          // หากไม่มีข้อมูลหรือข้อมูลว่างเปล่า
+          return fakeImage(context);
+        } else {
+          List<String> images = snapshot.data!;
+          // หากมีข้อมูลและไม่มีข้อผิดพลาด
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal, // กำหนดแนวนอน
+            child: Row(
+              children: images.map((imageUrl) {
+                return GestureDetector(
+                  onTap: () {
+                    navigateShowImage(images);
+                  },
+                  child: FutureBuilder<dynamic>(
+                    future: imageService.getImage(
+                        widget.token, SubPath.getHotelImage, imageUrl),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const CircularProgressIndicator();
+                      } else if (snapshot.hasError) {
+                        return Text('เกิดข้อผิดพลาด: ${snapshot.error}');
+                      } else if (snapshot.hasData) {
+                        return Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.white, // สีพื้นหลังของ Container
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey, // สีของเงา
+                                offset:
+                                    Offset(0, 3), // ตำแหน่งเงาในแนวแกน x และ y
+                                blurRadius: 4, // ความคมชัดของเงา
+                                spreadRadius: 2, // การกระจายของเงา
+                              ),
+                            ],
+                          ),
+                          width: MediaQuery.of(context).size.width,
+                          height: 300,
+                          child: Image.memory(
+                            snapshot.data!,
+                          ),
+                        );
+                      } else {
+                        return Container(
+                          width: MediaQuery.of(context).size.width,
+                          height: 300,
+                          color: Colors.amber,
+                        );
+                      }
+                    },
+                  ),
+                );
+              }).toList(),
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  Container fakeImage(BuildContext context) {
+    return Container(
+      height: 300,
+      width: MediaQuery.of(context)
+          .size
+          .width, // ทำให้ container ขยายตามความกว้างของหน้าจอ
+      padding: const EdgeInsets.all(16.0), // กำหนด padding ตามความต้องการ
+      decoration: const BoxDecoration(
+        color: Colors.amber, // สีพื้นหลังของ Container
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey, // สีของเงา
+            offset: Offset(0, 3), // ตำแหน่งเงาในแนวแกน x และ y
+            blurRadius: 4, // ความคมชัดของเงา
+            spreadRadius: 2, // การกระจายของเงา
+          ),
+        ],
+      ),
+    );
+  }
+}
