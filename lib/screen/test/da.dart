@@ -12,7 +12,7 @@ class ImageUploader extends StatefulWidget {
 
 class _ImageUploaderState extends State<ImageUploader> {
   File? _image;
-  int id = 4;
+  int id = 1;
 
   var dio = Dio();
 
@@ -41,7 +41,7 @@ class _ImageUploaderState extends State<ImageUploader> {
       Options options = Options(
         headers: {
           'Authorization':
-              'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIb3RlbFBldFNlcnZpY2UiLCJwcmluY2lwYWwiOjEsInJvbGUiOiJVU0VSIiwiZXhwIjoxNjk1NDQ0ODIzfQ.Xrf1ppMYDPDvoHMVabr77pGjbperCrFQXvTTKGyKJUo',
+              'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIb3RlbFBldFNlcnZpY2UiLCJwcmluY2lwYWwiOjEsInJvbGUiOiJVU0VSIiwiZXhwIjoxNjk2NzM1ODM0fQ.CCSN_Xs12YLymgZP4Z2kiFtBT_RaiFULcv9GgaFbO9I',
         },
       );
       // Send the form data to the backend

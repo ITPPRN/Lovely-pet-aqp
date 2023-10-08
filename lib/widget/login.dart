@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:lovly_pet_app/model/exception_login.dart';
 import 'package:lovly_pet_app/model/profile.dart';
-import 'package:lovly_pet_app/screen/landing_screen.dart';
 import 'package:lovly_pet_app/screen/register.dart';
 import 'package:lovly_pet_app/shape_screen/bottom_shape_clipper.dart';
 import 'package:lovly_pet_app/unity/alert_dialog.dart';

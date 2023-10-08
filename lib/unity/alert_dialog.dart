@@ -62,3 +62,40 @@ Future<void> successfullyApplied(BuildContext context, String message) async {
     ),
   );
 }
+
+Future<void> cancelDialog(BuildContext context, String message) async {
+  showDialog(
+      context: context,
+      builder: (context) => SimpleDialog(
+            backgroundColor: Colors.black38,
+            title: Text(
+              message,
+              style: TextStyle(color: Colors.red[400]),
+              textAlign: TextAlign.center,
+            ),
+            children: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  TextButton(
+                      onPressed: (() => Navigator.pop(context)),
+                      child: const Text(
+                        "ยกเลิก",
+                        style: TextStyle(
+                          color: Colors.grey,
+                        ),
+                      )),
+                  TextButton(
+                      onPressed: (() => Navigator.of(context)
+                          .popUntil((route) => route.isFirst)),
+                      child: const Text(
+                        "ตกลง",
+                        style: TextStyle(
+                          color: Colors.orange,
+                        ),
+                      )),
+                ],
+              ),
+            ],
+          ));
+}

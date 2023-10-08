@@ -1,18 +1,30 @@
+import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+import 'package:lovly_pet_app/model/exception_login.dart';
+import 'package:lovly_pet_app/model/json-to-dart-model/pet_profile_j_to_d.dart';
 import 'package:lovly_pet_app/model/pet_profile.dart';
+import 'package:lovly_pet_app/unity/alert_dialog.dart';
+import 'package:lovly_pet_app/unity/api_router.dart';
+import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
+import 'package:http_parser/http_parser.dart';
 
 class AddPet extends StatefulWidget {
-  const AddPet({super.key});
+  final String? token;
+  const AddPet({super.key, required this.token});
 
   @override
   State<AddPet> createState() => _AddPetState();
 }
 
 class _AddPetState extends State<AddPet> {
+  final format = DateFormat("dd/MM/yyyy");
+  String? dateB;
+
   final formKey = GlobalKey<FormState>();
   PetProfile petProfile = PetProfile();
   File? image;
@@ -37,12 +49,172 @@ class _AddPetState extends State<AddPet> {
     }
   }
 
+  ////////////////////////////////////////////////////////////////
+  Future<void> addData() async {
+    if (widget.token != null) {
+      final url = Uri.parse("${ApiRouter.pathAPI}${SubPath.addPet}");
+      try {
+        final response = await http.post(
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ${widget.token}',
+          },
+          body: json.encode(
+            {
+              "name": petProfile.name,
+              "birthday": petProfile.birthday,
+              "type": petProfile.type
+            },
+          ),
+        );
+
+        if (response.statusCode == 200) {
+          print(response.body);
+          if (image != null) {
+            PetProfileJToD petData =
+                PetProfileJToD.fromJson(jsonDecode(response.body));
+            uploadImage(petData.id);
+          }
+        } else {
+          ExceptionLogin exceptionModel =
+              ExceptionLogin.fromJson(jsonDecode(response.body));
+          // ignore: use_build_context_synchronously
+          errorDialog(context,
+              '${exceptionModel.error} stats = ${response.statusCode}');
+        }
+      } catch (e) {
+        // ignore: use_build_context_synchronously
+        errorDialog(
+            context, '$e'); // Return an empty list in case of an exception
+      }
+    } else {}
+  }
+
+  //////////////////////////////////////////////////////////////////
+  var dio = Dio();
+
+  Future<void> uploadImage(int? id) async {
+    if (image == null) {
+      return;
+    }
+    var formData = FormData();
+
+    // Add the image file to the form data
+    formData.files.add(
+      MapEntry(
+        'file',
+        await MultipartFile.fromFile(
+          image!.path,
+          contentType: MediaType('image', 'jpeg'),
+        ),
+      ),
+    );
+
+    formData.fields.add(
+      MapEntry('id', id.toString()),
+    );
+
+    try {
+      Options options = Options(
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+        },
+      );
+      // Send the form data to the backend
+      await dio.post(
+        '${ApiRouter.pathAPI}${SubPath.uploadImagePet}',
+        data: formData,
+        options: options,
+      );
+      print('Image uploaded successfully');
+      // ignore: use_build_context_synchronously
+      Navigator.of(context).pop();
+    } catch (e) {
+      print('Error uploading image: $e');
+    }
+  }
+  //////////////////////////////////////////////////////////////////
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
       body: buildListView(),
+      bottomNavigationBar: buildBottomAppBar(),
     );
+  }
+
+  BottomAppBar buildBottomAppBar() {
+    return BottomAppBar(
+        color: Colors.white,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all<Color>(
+                      Colors.grey), // สีพื้นหลัง
+                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                          50), // ปรับขนาดโดยกำหนดรัศมีที่ต้องการ
+                    ),
+                  ),
+                  elevation: MaterialStateProperty.all<double>(20),
+                  minimumSize: MaterialStateProperty.all<Size>(
+                      const Size(120, 40)), // ขนาดขั้นต่ำของปุ่ม
+                ),
+                onPressed: () {
+                  cancelDialog(context, 'ยกเลิกการเพิ่มข้อมูลสัตว์เลี้ยง');
+                },
+                child: const Text(
+                  'ยกเลิก',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all<Color>(
+                      Colors.amber.shade700), // สีพื้นหลัง
+                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                          50), // ปรับขนาดโดยกำหนดรัศมีที่ต้องการ
+                    ),
+                  ),
+                  elevation: MaterialStateProperty.all<double>(20),
+                  minimumSize: MaterialStateProperty.all<Size>(
+                      const Size(120, 40)), // ขนาดขั้นต่ำของปุ่ม
+                ),
+                onPressed: () {
+                  if (formKey.currentState!.validate()) {
+                    formKey.currentState?.save();
+                    formKey.currentState?.reset();
+                    addData();
+                  }
+                },
+                child: const Text(
+                  'บันทึก',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            )
+          ],
+        ));
   }
 
   ListView buildListView() {
@@ -170,18 +342,32 @@ class _AddPetState extends State<AddPet> {
                       SizedBox(
                         width: MediaQuery.of(context).size.width - 130,
                         child: Padding(
-                          padding: const EdgeInsets.fromLTRB(10, 0, 20, 0),
+                          padding: const EdgeInsets.fromLTRB(10, 5, 20, 0),
                           child: TextFormField(
-                            validator: RequiredValidator(
-                                errorText: "กรุณากรอก วันเกิด"),
-                            onSaved: (birthday) {
-                              petProfile.birthday = birthday;
+                            controller: TextEditingController(
+                                text: dateB), // กำหนดค่าเริ่มต้นจาก petProfile
+                            readOnly: true, // ทำให้ไม่สามารถแก้ไขค่าได้โดยตรง
+                            onTap: () async {
+                              final DateTime? pickedDate = await showDatePicker(
+                                context: context,
+                                initialDate: DateTime.now(), // กำหนดวันเริ่มต้น
+                                firstDate: DateTime(1900), // กำหนดวันแรก
+                                lastDate: DateTime(2100), // กำหนดวันสุดท้าย
+                              );
+                              if (pickedDate != null) {
+                                setState(() {
+                                  dateB = DateFormat('dd/MM/yyyy')
+                                      .format(pickedDate)
+                                      .toString(); // เมื่อเลือกวันที่แล้วให้กำหนดค่าใน petProfile
+                                });
+                                // อัพเดตค่า pickedDate ด้วยค่าใหม่ที่เลือก
+                                // this.pickedDate = pickedDate;
+                              }
                             },
-                            style: const TextStyle(
-                                fontSize: 20, color: Colors.black),
-                            decoration: const InputDecoration(
-                                border: OutlineInputBorder(
-                                    borderSide: BorderSide.none)),
+                            onSaved: (date) {
+                              // อัพเดตค่า petProfile.birthday ด้วยค่าวันที่ที่เลือกใน date
+                              petProfile.birthday = date;
+                            },
                           ),
                         ),
                       ),

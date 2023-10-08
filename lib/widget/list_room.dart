@@ -80,7 +80,10 @@ class _ListRoomState extends State<ListRoom> {
 
   void navigate(ListRoomModelDart? id) {
     Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return RoomData(id: id);
+      return RoomData(
+        id: id,
+        token: token,
+      );
     }));
   }
 
@@ -235,8 +238,10 @@ class _ListRoomState extends State<ListRoom> {
 
   Future<List<String>> getNameListImages(int? id) async {
     try {
-      List<String> nameImages1 =
-          await imageService.getImageName(token, SubPath.getListRoomImage, id);
+      List<String> nameImages1 = await imageService.getImageNameRoom(
+          token, SubPath.getListRoomImage, id);
+      print('pull images successfuly');
+      print(nameImages1);
       return nameImages1;
     } catch (e) {
       // ignore: use_build_context_synchronously
@@ -271,8 +276,8 @@ class _ListRoomState extends State<ListRoom> {
                     navigate(clinic);
                   },
                   child: FutureBuilder<dynamic>(
-                    future: imageService.getImage(
-                        token, SubPath.getListRoomImage, imageUrl),
+                    future: imageService.getImageRoom(
+                        token, SubPath.getRoomImage, imageUrl),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const CircularProgressIndicator();
