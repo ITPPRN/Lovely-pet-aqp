@@ -9,7 +9,6 @@ import 'package:lovly_pet_app/screen/uplode_profile.dart';
 import 'package:lovly_pet_app/shape_screen/bottom_shape_clipper_register.dart';
 import 'package:lovly_pet_app/unity/alert_dialog.dart';
 import 'package:lovly_pet_app/unity/api_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -291,7 +290,7 @@ class _RegisterState extends State<Register> {
   String ipc = "192.168.1.114";
 
   Future<void> postData() async {
-    final url = Uri.parse("${ApiRouter.pathAPI}/user/register");
+    final url = Uri.parse("${ApiRouter.pathAPI}${SubPath.userRegister}");
     try {
       final response = await http.post(
         url,
@@ -328,11 +327,8 @@ class _RegisterState extends State<Register> {
   }
 
   Future<void> routSer(int id) async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    preferences.setString('id', id.toString());
-
     MaterialPageRoute rout = MaterialPageRoute(
-      builder: (context) => const UplodeProfile(),
+      builder: (context) => UplodeProfile(id: id),
     );
     // ignore: use_build_context_synchronously
     Navigator.pushAndRemoveUntil(context, rout, (route) => false);

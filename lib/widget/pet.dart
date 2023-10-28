@@ -214,7 +214,7 @@ class _PetListState extends State<PetList> {
                   Padding(
                     padding: const EdgeInsets.only(top: 10),
                     child: Text(
-                      'ประเภท: ${clinic.petTypeId}',
+                      'ประเภท: ${clinic.petTyName}',
                       style: const TextStyle(
                           fontSize: 20, fontWeight: FontWeight.bold),
                     ),

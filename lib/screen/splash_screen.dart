@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:lovly_pet_app/screen/landing_screen.dart';
 import 'package:lovly_pet_app/screen/login_screen.dart';
+import 'package:lovly_pet_app/widget/clinic_list.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -31,7 +32,7 @@ class _SplashScreenState extends State<SplashScreen> {
       SharedPreferences preferences = await SharedPreferences.getInstance();
       String? tokenPrefer = preferences.getString('token');
       if (tokenPrefer != null && tokenPrefer.isNotEmpty) {
-        routSer(const LandingPage());
+        routSer(const LandingPage(widget: ClinicList()));
       } else {
         routSer(const LoginPage());
       }

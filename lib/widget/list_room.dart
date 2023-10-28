@@ -83,6 +83,7 @@ class _ListRoomState extends State<ListRoom> {
       return RoomData(
         id: id,
         token: token,
+        idHotel: widget.id,
       );
     }));
   }
@@ -240,8 +241,8 @@ class _ListRoomState extends State<ListRoom> {
     try {
       List<String> nameImages1 = await imageService.getImageNameRoom(
           token, SubPath.getListRoomImage, id);
-      print('pull images successfuly');
-      print(nameImages1);
+      //print('pull images successfuly');
+      //print(nameImages1);
       return nameImages1;
     } catch (e) {
       // ignore: use_build_context_synchronously

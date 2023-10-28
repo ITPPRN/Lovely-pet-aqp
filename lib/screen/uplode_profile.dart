@@ -8,22 +8,15 @@ import 'package:lovly_pet_app/unity/alert_dialog.dart';
 import 'package:lovly_pet_app/unity/api_router.dart';
 
 class UplodeProfile extends StatefulWidget {
-  const UplodeProfile({super.key});
+  final int? id;
+  const UplodeProfile({super.key, required this.id});
 
   @override
   State<UplodeProfile> createState() => _UplodeProfileState();
 }
 
 class _UplodeProfileState extends State<UplodeProfile> {
-  int id4 = 1;
-  int? id;
   File? image;
-
-  // Future<void> findU() async {
-  //   SharedPreferences preferences = await SharedPreferences.getInstance();
-  //   id = preferences.getInt('id')!;
-  //   setState(() {});
-  // }
 
   @override
   void initState() {
@@ -61,11 +54,12 @@ class _UplodeProfileState extends State<UplodeProfile> {
       ),
     );
     formData.fields.add(
-      MapEntry('id', id4.toString()),
+      MapEntry('id', widget.id.toString()),
     );
     try {
       // Send the form data to the backend
-      await dio.post('${ApiRouter.pathAPI}/hotel/upload-image', data: formData);
+      await dio.post('${ApiRouter.pathAPI}${SubPath.uploadImageUserRegister}',
+          data: formData);
       // ignore: use_build_context_synchronously
       navigateToLoginPage(context);
     } catch (e) {

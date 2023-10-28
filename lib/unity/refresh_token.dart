@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decode_full/jwt_decode_full.dart';
 import 'package:lovly_pet_app/unity/api_router.dart';
@@ -30,8 +31,14 @@ class RefreshToken {
     try {
       final response = await http.post(
         url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $oldToken',
+        },
         // ระบุข้อมูลที่จำเป็นเพื่อขอ Token ใหม่ (อาจจะมีการส่ง Token เดิมไปด้วย)
-        body: {'token': oldToken},
+        body: json.encode(
+          {'token': oldToken},
+        ),
       );
 
       if (response.statusCode == 200) {

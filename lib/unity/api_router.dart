@@ -6,6 +6,16 @@ class ApiRouter {
 class SubPath {
   static const String getListHotelImage = '/hotel/get-images-url';
 
+  static const String reserve = '/booking/reserve';
+
+  static const String userRegister = '/user/register';
+
+  static const String uploadImageUserRegister = '/user/upload-image-register';
+
+  static const String uploadSlip = '/booking/upload-slip';
+
+  static const String getBookingList = '/booking/list-booking-all-for-user';
+
   static const String getListRoomImage = '/room/get-images-url';
 
   static const String addPet = '/pet/add-pet';
@@ -15,6 +25,11 @@ class SubPath {
   static const String getPetImage = '/pet/get-images';
 
   static const String getMyPet = '/pet/get-my-pet';
+
+  static const String getMyProfile = '/user/profile';
+
+  static const String getAdditionalService =
+      '/additional-service/list-service-for-user';
 
   static const String getRoomImage = '/room/get-images';
 

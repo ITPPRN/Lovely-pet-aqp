@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:lovly_pet_app/model/exception_login.dart';
@@ -7,7 +8,6 @@ import 'package:lovly_pet_app/unity/alert_dialog.dart';
 import 'package:lovly_pet_app/unity/api_router.dart';
 import 'package:lovly_pet_app/unity/get_name_image.dart';
 import 'package:lovly_pet_app/widget/data_clinic.dart';
-import 'package:lovly_pet_app/widget/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ClinicList extends StatefulWidget {
@@ -19,6 +19,8 @@ class ClinicList extends StatefulWidget {
 
 class _ClinicListState extends State<ClinicList> {
   String? token;
+  String? username;
+  String? password;
   List<ListClinicModel> hotels = [];
 
   final imageService = ImageService();
@@ -26,9 +28,52 @@ class _ClinicListState extends State<ClinicList> {
   Future<void> findU() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     token = preferences.getString('token');
+    username = preferences.getString('userName');
+    password = preferences.getString('passWord');
     setState(() {});
     // await getData();
   }
+
+  /////////////////////////////////////
+  Future<void> postData() async {
+    final url = Uri.parse("${ApiRouter.pathAPI}${SubPath.login}");
+    try {
+      //print("sent data");
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(
+          {
+            'userName': username,
+            'passWord': password,
+          },
+        ),
+      ); // ข้อมูลที่จะส่ง
+
+      if (response.statusCode == 200) {
+        // ignore: use_build_context_synchronously
+        routSer(response.body, context);
+      } else {
+        ExceptionLogin exceptionModel =
+            ExceptionLogin.fromJson(jsonDecode(response.body));
+        // ignore: use_build_context_synchronously
+        errorDialog(context, '${exceptionModel.error}');
+      }
+    } catch (e) {
+      // ignore: use_build_context_synchronously
+      errorDialog(context, '$e');
+    }
+  }
+
+  Future<void> routSer(String token, BuildContext context) async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    preferences.setString('token', token);
+    findU();
+  }
+
+  ////////////////////////////////////
 
   Future<List<String>> getNameListImages(int? id) async {
     try {
@@ -63,13 +108,14 @@ class _ClinicListState extends State<ClinicList> {
           ExceptionLogin exceptionModel =
               ExceptionLogin.fromJson(jsonDecode(response.body));
           if (exceptionModel.error == "Forbidden") {
-            navigateLogin();
+            postData();
             //findU();
+          } else {
+            // ignore: use_build_context_synchronously
+            errorDialog(context,
+                '${exceptionModel.error} stats = ${response.statusCode}');
           }
-          // ignore: use_build_context_synchronously
-          errorDialog(context,
-              '${exceptionModel.error} stats = ${response.statusCode}');
-          return []; // Return an empty list in case of an error
+          return [];
         }
       } catch (e) {
         // ignore: use_build_context_synchronously
@@ -93,12 +139,6 @@ class _ClinicListState extends State<ClinicList> {
         id: id,
         token: token,
       );
-    }));
-  }
-
-  void navigateLogin() {
-    Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return const LoginWidget();
     }));
   }
 

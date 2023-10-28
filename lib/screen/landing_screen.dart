@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lovly_pet_app/screen/test/test.dart';
+import 'package:lovly_pet_app/screen/test/map.dart';
 import 'package:lovly_pet_app/unity/log_out.dart';
-import 'package:lovly_pet_app/widget/cart.dart';
 import 'package:lovly_pet_app/widget/clinic_list.dart';
 import 'package:lovly_pet_app/widget/history_service.dart';
 import 'package:lovly_pet_app/widget/list_booking.dart';
@@ -10,7 +9,9 @@ import 'package:lovly_pet_app/widget/user_profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LandingPage extends StatefulWidget {
-  const LandingPage({super.key});
+  final Widget widget;
+
+  const LandingPage({super.key, required this.widget});
 
   @override
   State<LandingPage> createState() => _LandingPageState();
@@ -19,6 +20,11 @@ class LandingPage extends StatefulWidget {
 class _LandingPageState extends State<LandingPage> {
   Widget currentWidget = const ClinicList();
   String? token;
+
+  void setCurrentWidget(Widget? widget) {
+    currentWidget = widget!;
+    setState(() {});
+  }
 
   Future<void> findU() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
@@ -31,6 +37,7 @@ class _LandingPageState extends State<LandingPage> {
   void initState() {
     super.initState();
     findU();
+    setCurrentWidget(widget.widget);
   }
 
   @override
@@ -50,7 +57,6 @@ class _LandingPageState extends State<LandingPage> {
             userProfile(),
             petList(),
             listBooking(),
-            cart(),
             historyService(),
             aa(),
             singOut(),
@@ -143,19 +149,6 @@ class _LandingPageState extends State<LandingPage> {
     );
   }
 
-  ListTile cart() {
-    return ListTile(
-      leading: const Icon(Icons.shopping_cart_outlined),
-      title: const Text("ตระกร้าคำสั่งจอง"),
-      onTap: () {
-        currentWidget = const Cart();
-        setState(() {});
-
-        Navigator.pop(context);
-      },
-    );
-  }
-
   ListTile historyService() {
     return ListTile(
       leading: const Icon(Icons.history),
@@ -174,7 +167,7 @@ class _LandingPageState extends State<LandingPage> {
       leading: const Icon(Icons.temple_buddhist_outlined),
       title: const Text("aa"),
       onTap: () {
-        currentWidget = const TestScreen();
+        currentWidget = const MapScreen();
         setState(() {});
 
         Navigator.pop(context);
@@ -184,8 +177,8 @@ class _LandingPageState extends State<LandingPage> {
 
   ListTile singOut() {
     return ListTile(
-      leading: const Icon(Icons
-          .exit_to_app), //icon: Icon(Icons.exit_to_app), onPressed: () => logOut(context))
+      leading: const Icon(Icons.exit_to_app),
+      //icon: Icon(Icons.exit_to_app), onPressed: () => logOut(context))
       title: const Text("ออกจากระบบ"),
       onTap: () => logOut(context),
     );

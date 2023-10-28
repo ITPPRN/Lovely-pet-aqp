@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 
-class HistoryService extends StatefulWidget {
-  const HistoryService({super.key});
+class SucceedWidget extends StatefulWidget {
+  const SucceedWidget({super.key});
 
   @override
-  State<HistoryService> createState() => _HistoryServiceState();
+  State<SucceedWidget> createState() => _SucceedWidgetState();
 }
 
-class _HistoryServiceState extends State<HistoryService> {
+class _SucceedWidgetState extends State<SucceedWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(),
       body: ListView(
         children: [
           buildBoxTextHead(),
@@ -22,7 +23,7 @@ class _HistoryServiceState extends State<HistoryService> {
 
   Image buildImageHead() {
     return Image.asset(
-      'images/rec.png',
+      'images/record.png',
       width: 150,
       height: 150,
     );
@@ -46,7 +47,7 @@ class _HistoryServiceState extends State<HistoryService> {
           ),
           child: const Center(
             child: Text(
-              'ประวัติการใช้บริการ',
+              'สำเร็จ',
               style: TextStyle(fontSize: 20),
             ),
           )),

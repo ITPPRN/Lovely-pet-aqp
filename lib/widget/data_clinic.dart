@@ -5,6 +5,7 @@ import 'package:lovly_pet_app/unity/api_router.dart';
 import 'package:lovly_pet_app/unity/get_name_image.dart';
 import 'package:lovly_pet_app/unity/show_image.dart';
 import 'package:lovly_pet_app/widget/list_room.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DataClinic extends StatefulWidget {
   //const ListRoom({super.key});
@@ -142,15 +143,30 @@ class _DataClinicState extends State<DataClinic> {
           ),
           Padding(
             padding: const EdgeInsets.all(20.0),
-            child: Container(
-              width: 100,
-              height: 100,
-              color: Colors.pink,
-            ),
+            child: SizedBox(
+                width: 100,
+                height: 100,
+                child: GestureDetector(
+                  onTap: () {
+                    _launchUrl(widget.id!.latitude, widget.id!.longitude);
+                  },
+                  child: Image.asset('images/Google-maps.png'),
+                )),
           )
         ],
       ),
     );
+  }
+
+  Uri buildGoogleMapsUrl(double? latitude, double? longitude) {
+    return Uri.parse(
+        'https://www.google.com/maps?q=${latitude.toString()},${longitude.toString()}');
+  }
+
+  Future<void> _launchUrl(double? latitude, double? longitude) async {
+    if (!await launchUrl(buildGoogleMapsUrl(latitude, longitude))) {
+      throw Exception('Could not launch buildGoogleMapsUrl()');
+    }
   }
 
   Card buildCardAdditionalNotes() {

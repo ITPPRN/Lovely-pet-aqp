@@ -8,6 +8,8 @@ class ListClinicModel {
   String? verify;
   String? email;
   String? additionalNotes;
+  double? latitude;
+  double? longitude;
 
   ListClinicModel(
       {this.id,
@@ -18,7 +20,9 @@ class ListClinicModel {
       this.openState,
       this.verify,
       this.email,
-      this.additionalNotes});
+      this.additionalNotes,
+      this.latitude,
+      this.longitude});
 
   ListClinicModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -30,19 +34,23 @@ class ListClinicModel {
     verify = json['verify'];
     email = json['email'];
     additionalNotes = json['additionalNotes'];
+    latitude = json['latitude'];
+    longitude = json['longitude'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['hotelName'] = this.hotelName;
-    data['location'] = this.location;
-    data['hotelTel'] = this.hotelTel;
-    data['rating'] = this.rating;
-    data['openState'] = this.openState;
-    data['verify'] = this.verify;
-    data['email'] = this.email;
-    data['additionalNotes'] = this.additionalNotes;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['hotelName'] = hotelName;
+    data['location'] = location;
+    data['hotelTel'] = hotelTel;
+    data['rating'] = rating;
+    data['openState'] = openState;
+    data['verify'] = verify;
+    data['email'] = email;
+    data['additionalNotes'] = additionalNotes;
+    data['latitude'] = latitude;
+    data['longitude'] = longitude;
     return data;
   }
 }

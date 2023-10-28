@@ -8,9 +8,14 @@ import 'package:lovly_pet_app/widget/room_booking.dart';
 class RoomData extends StatefulWidget {
   //const ListRoom({super.key});
   final ListRoomModelDart? id; // ตัวแปรสำหรับรับข้อมูล
+  final int? idHotel;
   final String? token;
 
-  const RoomData({super.key, required this.id, required this.token});
+  const RoomData(
+      {super.key,
+      required this.id,
+      required this.token,
+      required this.idHotel});
 
   @override
   State<RoomData> createState() => _RoomDataState();
@@ -18,9 +23,10 @@ class RoomData extends StatefulWidget {
 
 class _RoomDataState extends State<RoomData> {
   final imageService = ImageService();
-  void navigate(int? id) {
+  void navigate() {
     Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return RoomBooking();
+      return RoomBooking(
+          token: widget.token, idHotel: widget.idHotel, room: widget.id);
     }));
   }
 
@@ -63,7 +69,7 @@ class _RoomDataState extends State<RoomData> {
                       const Size(120, 40)), // ขนาดขั้นต่ำของปุ่ม
                 ),
                 onPressed: () {
-                  navigate(widget.id!.id);
+                  navigate();
                 },
                 child: const Text(
                   'จองห้อง',

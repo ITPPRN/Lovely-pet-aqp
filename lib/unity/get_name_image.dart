@@ -25,7 +25,7 @@ class ImageService {
         );
 
         if (response.statusCode == 200) {
-          print(response.body);
+          //print(response.body);
           final List<dynamic> responseData = json.decode(response.body);
           images = responseData.map((dynamic item) => item.toString()).toList();
           return images;
@@ -70,7 +70,7 @@ class ImageService {
         );
 
         if (response.statusCode == 200) {
-          print(response.body);
+          //print(response.body);
           final List<dynamic> responseData = json.decode(response.body);
           images = responseData.map((dynamic item) => item.toString()).toList();
           return images;
@@ -150,8 +150,8 @@ class ImageService {
 
         if (response.statusCode == 200) {
           final responseData = Uint8List.fromList(response.bodyBytes);
-          print('getimage ss');
-          print(responseData);
+          //print('getimage ss');
+          //print(responseData);
           return responseData;
         } else {
           ExceptionLogin exceptionModel =

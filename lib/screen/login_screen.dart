@@ -1,7 +1,8 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
+import 'package:http/http.dart' as http;
 import 'package:lovly_pet_app/model/exception_login.dart';
 import 'package:lovly_pet_app/model/profile.dart';
 import 'package:lovly_pet_app/screen/landing_screen.dart';
@@ -9,6 +10,7 @@ import 'package:lovly_pet_app/screen/register.dart';
 import 'package:lovly_pet_app/shape_screen/bottom_shape_clipper.dart';
 import 'package:lovly_pet_app/unity/alert_dialog.dart';
 import 'package:lovly_pet_app/unity/api_router.dart';
+import 'package:lovly_pet_app/widget/clinic_list.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
@@ -237,11 +239,15 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> routSer(String token) async {
+    String? userName = profile.userName;
+    String? passWord = profile.passWord;
     SharedPreferences preferences = await SharedPreferences.getInstance();
     preferences.setString('token', token);
+    preferences.setString('userName', userName!);
+    preferences.setString('passWord', passWord!);
 
     MaterialPageRoute rout = MaterialPageRoute(
-      builder: (context) => const LandingPage(),
+      builder: (context) => const LandingPage(widget: ClinicList()),
     );
     // ignore: use_build_context_synchronously
     Navigator.pushAndRemoveUntil(context, rout, (route) => false);

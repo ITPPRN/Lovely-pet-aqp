@@ -2,7 +2,8 @@ class PetProfileJToD {
   int? id;
   String? petName;
   String? birthday;
-  String? petTypeId;
+  int? petTypeId;
+  String? petTyName;
   int? userOwner;
   String? photoPath;
 
@@ -11,6 +12,7 @@ class PetProfileJToD {
       this.petName,
       this.birthday,
       this.petTypeId,
+      this.petTyName,
       this.userOwner,
       this.photoPath});
 
@@ -21,6 +23,7 @@ class PetProfileJToD {
     petTypeId = json['petTypeId'];
     userOwner = json['userOwner'];
     photoPath = json['photoPath'];
+    petTyName = json['petTyName'];
   }
 
   Map<String, dynamic> toJson() {
@@ -31,6 +34,8 @@ class PetProfileJToD {
     data['petTypeId'] = petTypeId;
     data['userOwner'] = userOwner;
     data['photoPath'] = photoPath;
+    data['petTyName'] = petTyName;
+
     return data;
   }
 }

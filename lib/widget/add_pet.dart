@@ -364,6 +364,10 @@ class _AddPetState extends State<AddPet> {
                                 // this.pickedDate = pickedDate;
                               }
                             },
+                            decoration: const InputDecoration(
+                              border:
+                                  InputBorder.none, // ซ่อนเส้นขอบของ TextField
+                            ),
                             onSaved: (date) {
                               // อัพเดตค่า petProfile.birthday ด้วยค่าวันที่ที่เลือกใน date
                               petProfile.birthday = date;
