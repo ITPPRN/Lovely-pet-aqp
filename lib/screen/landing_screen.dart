@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:lovly_pet_app/screen/test/map.dart';
 import 'package:lovly_pet_app/unity/log_out.dart';
@@ -7,6 +9,11 @@ import 'package:lovly_pet_app/widget/list_booking.dart';
 import 'package:lovly_pet_app/widget/pet.dart';
 import 'package:lovly_pet_app/widget/user_profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import '../model/exception_login.dart';
+import '../model/json-to-dart-model/user_profile_j_to_d.dart';
+import '../unity/alert_dialog.dart';
+import '../unity/api_router.dart';
 
 class LandingPage extends StatefulWidget {
   final Widget widget;
@@ -20,10 +27,41 @@ class LandingPage extends StatefulWidget {
 class _LandingPageState extends State<LandingPage> {
   Widget currentWidget = const ClinicList();
   String? token;
+  UserProfileJToD? profile;
+
 
   void setCurrentWidget(Widget? widget) {
     currentWidget = widget!;
     setState(() {});
+  }
+
+  Future<void> getData() async {
+    if (token != null) {
+      final url = Uri.parse("${ApiRouter.pathAPI}${SubPath.getMyProfile}");
+      try {
+        final response = await http.post(
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        );
+
+        if (response.statusCode == 200) {
+          profile = UserProfileJToD.fromJson(jsonDecode(response.body));
+          setState(() {});
+        } else {
+          ExceptionLogin exceptionModel =
+          ExceptionLogin.fromJson(jsonDecode(response.body));
+          // ignore: use_build_context_synchronously
+          errorDialog(context,
+              '${exceptionModel.error} stats = ${response.statusCode}');
+        }
+      } catch (e) {
+        // ignore: use_build_context_synchronously
+        errorDialog(context, '$e');
+      }
+    }
   }
 
   Future<void> findU() async {
@@ -38,6 +76,7 @@ class _LandingPageState extends State<LandingPage> {
     super.initState();
     findU();
     setCurrentWidget(widget.widget);
+    getData();
   }
 
   @override
@@ -52,7 +91,7 @@ class _LandingPageState extends State<LandingPage> {
   Drawer showDrawer() => Drawer(
         child: ListView(
           children: <Widget>[
-            headeDrawer(),
+            headDrawer(),
             clinicList(),
             userProfile(),
             petList(),
@@ -64,7 +103,7 @@ class _LandingPageState extends State<LandingPage> {
         ),
       );
 
-  UserAccountsDrawerHeader headeDrawer() {
+  UserAccountsDrawerHeader headDrawer() {
     return UserAccountsDrawerHeader(
       decoration: const BoxDecoration(
         image: DecorationImage(
@@ -87,12 +126,9 @@ class _LandingPageState extends State<LandingPage> {
           style: TextStyle(color: Colors.white),
         ),
       ),
-      accountEmail: const Padding(
-        padding: EdgeInsets.only(left: 10),
-        child: Text(
-          "Wellcome",
-          style: TextStyle(color: Colors.white),
-        ),
+      accountEmail:const  Padding(
+        padding:  EdgeInsets.only(left: 10),
+        child: Text('Welcome',style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold,color: Colors.white),)
       ),
     );
   }

@@ -133,7 +133,7 @@ class _ListBookingState extends State<ListBooking> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('ชื่อคลีนิค: ${clinic.hotelId} '),
+            Text('ชื่อคลีนิค: ${clinic.nameHotel} '),
             Text('ห้องพักหมายเลข: ${clinic.roomNumber}'),
             Text('ชื่อสัตว์เลี้ยง: ${clinic.pet!.petName}'),
             Align(

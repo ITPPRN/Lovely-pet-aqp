@@ -200,4 +200,35 @@ class ImageService {
     }
     return null;
   }
+
+
+  Future<dynamic> getImageProfile(String? token) async {
+    if (token != null) {
+      final url = Uri.parse("${ApiRouter.pathAPI}/user/get-images");
+      try {
+        final response = await http.post(
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        );
+
+        if (response.statusCode == 200) {
+          final responseData = Uint8List.fromList(response.bodyBytes);
+          return responseData;
+        } else {
+          ExceptionLogin exceptionModel =
+          ExceptionLogin.fromJson(jsonDecode(response.body));
+          print(response.body);
+          print('getImage exception = ${exceptionModel.error}');
+          return null;
+        }
+      } catch (e) {
+        print('getImage catch = $e');
+        return null;
+      }
+    }
+    return null;
+  }
 }

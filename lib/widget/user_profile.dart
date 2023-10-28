@@ -13,6 +13,8 @@ import 'package:lovly_pet_app/widget/succeed_widget.dart';
 import 'package:lovly_pet_app/widget/waite_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../unity/get_name_image.dart';
+
 class UserProfile extends StatefulWidget {
   const UserProfile({super.key});
 
@@ -24,6 +26,7 @@ class _UserProfileState extends State<UserProfile> {
   File? image;
   String? token;
   UserProfileJToD? profile;
+  final imageService = ImageService();
 
   Future<void> findU() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
@@ -449,14 +452,14 @@ class _UserProfileState extends State<UserProfile> {
 
   Padding buildTextNexToImage() {
     return Padding(
-      padding: const EdgeInsets.only(left: 30),
+      padding: const EdgeInsets.only(left: 10),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             profile?.email == null ? '' : profile!.email!,
-            style: const TextStyle(fontSize: 20),
+            style: const TextStyle(fontSize: 16,fontWeight: FontWeight.bold),
           ),
           Padding(
             padding: const EdgeInsets.only(left: 2),
@@ -483,6 +486,10 @@ class _UserProfileState extends State<UserProfile> {
   }
 
   Container buildImage() {
+    String? photo ;
+    if (profile != null) {
+      photo = profile!.userPhoto;
+    }
     return Container(
       width: 150,
       height: 150,
@@ -490,22 +497,58 @@ class _UserProfileState extends State<UserProfile> {
         color: Colors.grey,
         shape: CircleBorder(),
       ),
-      child: image == null
+      child: photo == null
           ? const Icon(
               Icons.person,
               size: 140,
             )
           : SizedBox(
-              width: 140, // ปรับขนาดของ Container ให้เหมาะสม
-              height: 140, // ปรับขนาดของ Container ให้เหมาะสม
-              child: ClipOval(
-                child: FittedBox(
-                  fit: BoxFit
-                      .cover, // ใช้ BoxFit.cover เพื่อปรับขนาดรูปให้เต็มตาม Container
-                  child: Image.file(image!),
-                ),
-              ),
+        width: 90, // ปรับขนาดของ Container ให้เหมาะสม
+        height: 90, // ปรับขนาดของ Container ให้เหมาะสม
+        child: ClipOval(
+          child: FittedBox(
+            fit: BoxFit
+                .cover, // ใช้ BoxFit.cover เพื่อปรับขนาดรูปให้เต็มตาม Container
+            child: FutureBuilder<dynamic>(
+              future: imageService.getImageProfile(token),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  return Text('เกิดข้อผิดพลาด: ${snapshot.error}');
+                } else if (snapshot.hasData) {
+                  return Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.white, // สีพื้นหลังของ Container
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey, // สีของเงา
+                          offset: Offset(
+                              0, 3), // ตำแหน่งเงาในแนวแกน x และ y
+                          blurRadius: 4, // ความคมชัดของเงา
+                          spreadRadius: 2, // การกระจายของเงา
+                        ),
+                      ],
+                    ),
+                    width: MediaQuery.of(context).size.width,
+                    height: 200,
+                    child: Image.memory(
+                      snapshot.data!,
+                    ),
+                  );
+                } else {
+                  return Container(
+                    width: MediaQuery.of(context).size.width,
+                    height: 300,
+                    color: Colors.amber,
+                  );
+                }
+              },
             ),
+          ),
+        ),
+      ),
     );
   }
 }

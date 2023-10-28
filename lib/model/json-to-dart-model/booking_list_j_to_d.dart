@@ -12,21 +12,33 @@ class BookingListJToD {
   int? hotelId;
   double? price;
   AddSer? addSer;
+  String? nameHotel;
+  double? latitude;
+  double? longitude;
+  String? telHotel;
+  String? email;
+  bool? feedback;
 
   BookingListJToD(
       {this.id,
-        this.bookingStartDate,
-        this.bookingEndDate,
-        this.date,
-        this.paymentMethod,
-        this.payment,
-        this.state,
-        this.roomNumber,
-        this.pet,
-        this.user,
-        this.hotelId,
-        this.price,
-        this.addSer});
+      this.bookingStartDate,
+      this.bookingEndDate,
+      this.date,
+      this.paymentMethod,
+      this.payment,
+      this.state,
+      this.roomNumber,
+      this.pet,
+      this.user,
+      this.hotelId,
+      this.price,
+      this.addSer,
+      this.nameHotel,
+      this.latitude,
+      this.longitude,
+      this.telHotel,
+      this.email,
+      this.feedback});
 
   BookingListJToD.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -41,8 +53,13 @@ class BookingListJToD {
     user = json['user'] != null ? User.fromJson(json['user']) : null;
     hotelId = json['hotelId'];
     price = json['price'];
-    addSer =
-    json['addSer'] != null ? AddSer.fromJson(json['addSer']) : null;
+    addSer = json['addSer'] != null ? AddSer.fromJson(json['addSer']) : null;
+    nameHotel = json['nameHotel'];
+    latitude = json['latitude'];
+    longitude = json['longitude'];
+    telHotel = json['telHotel'];
+    email = json['email'];
+    feedback = json['feedback'];
   }
 
   Map<String, dynamic> toJson() {
@@ -66,6 +83,12 @@ class BookingListJToD {
     if (addSer != null) {
       data['addSer'] = addSer!.toJson();
     }
+    data['nameHotel'] = nameHotel;
+    data['latitude'] = latitude;
+    data['longitude'] = longitude;
+    data['telHotel'] = telHotel;
+    data['email'] = email;
+    data['feedback'] = feedback;
     return data;
   }
 }
@@ -81,12 +104,12 @@ class Pet {
 
   Pet(
       {this.id,
-        this.petName,
-        this.birthday,
-        this.petTypeId,
-        this.petTyName,
-        this.userOwner,
-        this.photoPath});
+      this.petName,
+      this.birthday,
+      this.petTypeId,
+      this.petTyName,
+      this.userOwner,
+      this.photoPath});
 
   Pet.fromJson(Map<String, dynamic> json) {
     id = json['id'];
