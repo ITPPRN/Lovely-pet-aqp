@@ -6,6 +6,8 @@ class ApiRouter {
 class SubPath {
   static const String getListHotelImage = '/hotel/get-images-url';
 
+  static const String history = '/service-history/list-service-history';
+
   static const String reserve = '/booking/reserve';
 
   static const String userRegister = '/user/register';
@@ -40,4 +42,8 @@ class SubPath {
   static const String refreshToken = '/user/refresh-token';
 
   static const String login = '/user/login';
+
+  static const String review = '/review/review';
+
+  static const String cancel = '/booking/cancel';
 }

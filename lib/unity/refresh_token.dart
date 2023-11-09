@@ -1,12 +1,14 @@
 import 'dart:async';
-import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:jwt_decode_full/jwt_decode_full.dart';
 import 'package:lovly_pet_app/unity/api_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class RefreshToken {
-  void fetchDataFromApi(String? token) {
+  void fetchDataFromApi() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String? token = preferences.getString('token');
     if (token != null) {
       final jwtData = jwtDecode(token);
 
@@ -18,7 +20,7 @@ class RefreshToken {
 
       int answer = exp - currentTimeInSeconds;
 
-      if (answer < 600) {
+      if (answer < 1600) {
         refreshToken(token);
       }
     } else {
@@ -36,12 +38,11 @@ class RefreshToken {
           'Authorization': 'Bearer $oldToken',
         },
         // ระบุข้อมูลที่จำเป็นเพื่อขอ Token ใหม่ (อาจจะมีการส่ง Token เดิมไปด้วย)
-        body: json.encode(
-          {'token': oldToken},
-        ),
       );
 
       if (response.statusCode == 200) {
+        print('old = $oldToken');
+        print('new = ${response.body}');
         SharedPreferences preferences = await SharedPreferences.getInstance();
         preferences.setString('token', response.body);
       } else {
@@ -56,9 +57,9 @@ class RefreshToken {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     String? token = preferences.getString('token');
     if (token != null) {
-      const Duration interval = Duration(hours: 1);
+      const Duration interval = Duration(minutes: 30);
       Timer.periodic(interval, (Timer timer) {
-        fetchDataFromApi(token);
+        fetchDataFromApi();
       });
     }
   }

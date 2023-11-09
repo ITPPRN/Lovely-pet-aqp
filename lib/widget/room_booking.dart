@@ -291,7 +291,7 @@ class _RoomBookingState extends State<RoomBooking> {
                   reserve();
                 },
                 child: const Text(
-                  'เพิ่มในรายการจอง',
+                  'จอง',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 20,

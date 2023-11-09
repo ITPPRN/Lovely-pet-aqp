@@ -1,13 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:lovly_pet_app/model/json-to-dart-model/booking_list_j_to_d.dart';
+import 'package:lovly_pet_app/widget/review.dart';
 
 class SucceedWidget extends StatefulWidget {
-  const SucceedWidget({super.key});
+  final List<BookingListJToD> succeedBooking;
+  final String? token;
+  const SucceedWidget(
+      {super.key, required this.succeedBooking, required this.token});
 
   @override
   State<SucceedWidget> createState() => _SucceedWidgetState();
 }
 
 class _SucceedWidgetState extends State<SucceedWidget> {
+  void navigateReview(BookingListJToD? booking) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return Rating(
+        booking: booking!,
+        token: widget.token,
+      );
+    }));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -16,7 +30,96 @@ class _SucceedWidgetState extends State<SucceedWidget> {
         children: [
           buildBoxTextHead(),
           buildImageHead(),
+          buildListView(),
         ],
+      ),
+    );
+  }
+
+  Column buildListView() {
+    return Column(
+      children: widget.succeedBooking.map((booking) {
+        return buildBookingItem(booking);
+      }).toList(),
+    );
+  }
+
+  Widget buildBookingItem(BookingListJToD? booking) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Card(
+        child: ListTile(
+          title: Text('Clinic name: ${booking!.nameHotel}'),
+          subtitle: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('room number: ${booking.roomNumber}'),
+              Text(
+                  'start: ${booking.bookingStartDate} - end: ${booking.bookingEndDate}'),
+              Text('pet: ${booking.pet!.petName}'),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Visibility(
+                    visible:
+                        !booking.feedback!, // ระบุว่าจะแสดงหรือซ่อน TextButton
+                    child: Align(
+                      alignment: Alignment.bottomRight,
+                      child: TextButton(
+                        onPressed: () {
+                          navigateReview(booking);
+                        },
+                        child: Column(
+                          children: [
+                            Image.asset(
+                              'images/score.png',
+                              width: 50,
+                              height: 50,
+                            ),
+                            const Text(
+                              'ให้คะแนน',
+                              style: TextStyle(color: Colors.black),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: ElevatedButton(
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            Colors.amber.shade700), // สีพื้นหลัง
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                                50), // ปรับขนาดโดยกำหนดรัศมีที่ต้องการ
+                          ),
+                        ),
+                        elevation: MaterialStateProperty.all<double>(20),
+                        minimumSize: MaterialStateProperty.all<Size>(
+                            const Size(100, 40)), // ขนาดขั้นต่ำของปุ่ม
+                      ),
+                      onPressed: () {},
+                      child: const Text(
+                        'จองอีกครั้ง',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

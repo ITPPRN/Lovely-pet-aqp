@@ -10,7 +10,7 @@ import '../unity/alert_dialog.dart';
 import '../unity/api_router.dart';
 
 class ListBooking extends StatefulWidget {
-  const ListBooking({super.key});
+  const ListBooking({Key? key});
 
   @override
   State<ListBooking> createState() => _ListBookingState();
@@ -19,15 +19,20 @@ class ListBooking extends StatefulWidget {
 class _ListBookingState extends State<ListBooking> {
   String? token;
   List<BookingListJToD> bookings = [];
+  List<BookingListJToD> cancelBookings = [];
+  List<BookingListJToD> successBookings = [];
+  List<BookingListJToD> waitBookings = [];
+  List<BookingListJToD> approveBooking = [];
+  List<BookingListJToD> disapprovalBookings = [];
 
   Future<void> findU() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     token = preferences.getString('token');
     setState(() {});
-    // await getData();
+    getData();
   }
 
-  Future<List<BookingListJToD>> getData() async {
+  Future<void> getData() async {
     if (token != null) {
       final url = Uri.parse("${ApiRouter.pathAPI}${SubPath.getBookingList}");
       try {
@@ -43,7 +48,21 @@ class _ListBookingState extends State<ListBooking> {
           final List<dynamic> jsonList = jsonDecode(response.body);
           bookings =
               jsonList.map((json) => BookingListJToD.fromJson(json)).toList();
-          return bookings; // Return the list of clinics
+
+          // แยกข้อมูลออกตามสถานะ
+          cancelBookings =
+              bookings.where((booking) => booking.state == 'cancel').toList();
+          successBookings =
+              bookings.where((booking) => booking.state == 'complete').toList();
+          waitBookings =
+              bookings.where((booking) => booking.state == 'waite').toList();
+          approveBooking =
+              bookings.where((booking) => booking.state == 'approve').toList();
+          disapprovalBookings = bookings
+              .where((booking) => booking.state == 'disapproval')
+              .toList();
+          setState(() {});
+          //return bookings; // Return the list of clinics
         } else {
           ExceptionLogin exceptionModel =
               ExceptionLogin.fromJson(jsonDecode(response.body));
@@ -52,15 +71,15 @@ class _ListBookingState extends State<ListBooking> {
           errorDialog(context,
               '${exceptionModel.error} stats = ${response.statusCode}');
 
-          return [];
+          //return [];
         }
       } catch (e) {
         // ignore: use_build_context_synchronously
         errorDialog(context, '$e');
-        return []; // Return an empty list in case of an exception
+        //return []; // Return an empty list in case of an exception
       }
     } else {
-      return [];
+      //return [];
     }
   }
 
@@ -73,40 +92,46 @@ class _ListBookingState extends State<ListBooking> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: buildBookingList(),
+      body: DefaultTabController(
+        length: 5,
+        child: Column(
+          children: <Widget>[
+            const TabBar(
+              tabs: <Widget>[
+                Tab(text: 'รออนุมัติ'),
+                Tab(text: 'อนุมัติ'),
+                Tab(text: 'ไม่อนุมัติ'),
+                Tab(text: 'สำเร็จ'),
+                Tab(text: 'ยกเลิก'),
+              ],
+            ),
+            SizedBox(
+              height: 400, // ปรับความสูงตามต้องการ
+              child: TabBarView(
+                children: <Widget>[
+                  buildListView(waitBookings),
+                  buildListView(approveBooking),
+                  buildListView(disapprovalBookings),
+                  buildListView(successBookings),
+                  buildListView(cancelBookings),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  FutureBuilder<List<BookingListJToD>> buildBookingList() {
-    return FutureBuilder<List<BookingListJToD>>(
-      future: getData(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          // ในขณะที่รอข้อมูล
-          return const CircularProgressIndicator();
-        } else if (snapshot.hasError) {
-          // หากเกิดข้อผิดพลาด
-          return Text('เกิดข้อผิดพลาด: ${snapshot.error}');
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          // หากไม่มีข้อมูลหรือข้อมูลว่างเปล่า
-          return const Text('ไม่มีรายชื่อคลีนิก');
-        } else {
-          // หากมีข้อมูลและไม่มีข้อผิดพลาด
-          return buildListView(snapshot);
-        }
-      },
-    );
-  }
-
-  ListView buildListView(AsyncSnapshot<List<BookingListJToD>> snapshot) {
+  ListView buildListView(List<BookingListJToD> bookingList) {
     return ListView.builder(
-      itemCount: snapshot.data!.length,
+      itemCount: bookingList.length,
       itemBuilder: (context, index) {
-        final clinic = snapshot.data![index];
+        final booking = bookingList[index];
 
         return Padding(
           padding: const EdgeInsets.all(10.0),
-          child: buildComponentBookingList(clinic, context),
+          child: buildComponentBookingList(booking, context),
         );
       },
     );
@@ -130,17 +155,266 @@ class _ListBookingState extends State<ListBooking> {
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('ชื่อคลีนิค: ${clinic.nameHotel} '),
-            Text('ห้องพักหมายเลข: ${clinic.roomNumber}'),
-            Text('ชื่อสัตว์เลี้ยง: ${clinic.pet!.petName}'),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Text('สถานะ: ${clinic.state}'),
-            )
-          ],
+        child: Card(
+          child: ListTile(
+            title: Text('Clinic name: ${clinic.nameHotel}'),
+            subtitle: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('room number: ${clinic.roomNumber}'),
+                Text(
+                    'start: ${clinic.bookingStartDate} - end: ${clinic.bookingEndDate}'),
+                Text('pet: ${clinic.pet!.petName}'),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Visibility(
+                      visible: clinic.state == "waite",
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: ElevatedButton(
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                Colors.red), // สีพื้นหลัง
+                            shape: MaterialStateProperty.all<
+                                RoundedRectangleBorder>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                    50), // ปรับขนาดโดยกำหนดรัศมีที่ต้องการ
+                              ),
+                            ),
+                            elevation: MaterialStateProperty.all<double>(20),
+                            minimumSize: MaterialStateProperty.all<Size>(
+                                const Size(100, 40)), // ขนาดขั้นต่ำของปุ่ม
+                          ),
+                          onPressed: () {
+                            //showCancelDialog(booking.id);
+                          },
+                          child: const Text(
+                            'ยกเลิก',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Visibility(
+                      visible: clinic.state == "approve",
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: ElevatedButton(
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                Colors.amber.shade700), // สีพื้นหลัง
+                            shape: MaterialStateProperty.all<
+                                RoundedRectangleBorder>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                    50), // ปรับขนาดโดยกำหนดรัศมีที่ต้องการ
+                              ),
+                            ),
+                            elevation: MaterialStateProperty.all<double>(20),
+                            minimumSize: MaterialStateProperty.all<Size>(
+                                const Size(100, 40)), // ขนาดขั้นต่ำของปุ่ม
+                          ),
+                          onPressed: () {
+                            //showCancelDialog(booking.id);
+                          },
+                          child: const Text(
+                            'นำทาง',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Visibility(
+                      visible: clinic.state == "disapproval",
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Padding(
+                              padding:
+                                  const EdgeInsets.only(top: 10, right: 10),
+                              child: ElevatedButton(
+                                style: ButtonStyle(
+                                  backgroundColor:
+                                      MaterialStateProperty.all<Color>(
+                                          Colors.red), // สีพื้นหลัง
+                                  shape: MaterialStateProperty.all<
+                                      RoundedRectangleBorder>(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                          50), // ปรับขนาดโดยกำหนดรัศมีที่ต้องการ
+                                    ),
+                                  ),
+                                  elevation:
+                                      MaterialStateProperty.all<double>(20),
+                                  minimumSize: MaterialStateProperty.all<Size>(
+                                      const Size(
+                                          100, 40)), // ขนาดขั้นต่ำของปุ่ม
+                                ),
+                                onPressed: () {
+                                  //showCancelDialog(booking.id);
+                                },
+                                child: const Text(
+                                  'ยกเลิก',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 10),
+                              child: ElevatedButton(
+                                style: ButtonStyle(
+                                  backgroundColor:
+                                      MaterialStateProperty.all<Color>(
+                                          Colors.amber.shade700), // สีพื้นหลัง
+                                  shape: MaterialStateProperty.all<
+                                      RoundedRectangleBorder>(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                          50), // ปรับขนาดโดยกำหนดรัศมีที่ต้องการ
+                                    ),
+                                  ),
+                                  elevation:
+                                      MaterialStateProperty.all<double>(20),
+                                  minimumSize: MaterialStateProperty.all<Size>(
+                                      const Size(
+                                          100, 40)), // ขนาดขั้นต่ำของปุ่ม
+                                ),
+                                onPressed: () {},
+                                child: const Text(
+                                  'อัปเดตการจอง',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Visibility(
+                      visible: clinic.state == "complete",
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Visibility(
+                            visible: !clinic
+                                .feedback!, // ระบุว่าจะแสดงหรือซ่อน TextButton
+                            child: Align(
+                              alignment: Alignment.bottomRight,
+                              child: TextButton(
+                                onPressed: () {
+                                  //navigateReview(booking);
+                                },
+                                child: Column(
+                                  children: [
+                                    Image.asset(
+                                      'images/score.png',
+                                      width: 50,
+                                      height: 50,
+                                    ),
+                                    const Text(
+                                      'ให้คะแนน',
+                                      style: TextStyle(color: Colors.black),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: ElevatedButton(
+                              style: ButtonStyle(
+                                backgroundColor:
+                                    MaterialStateProperty.all<Color>(
+                                        Colors.amber.shade700), // สีพื้นหลัง
+                                shape: MaterialStateProperty.all<
+                                    RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        50), // ปรับขนาดโดยกำหนดรัศมีที่ต้องการ
+                                  ),
+                                ),
+                                elevation:
+                                    MaterialStateProperty.all<double>(20),
+                                minimumSize: MaterialStateProperty.all<Size>(
+                                    const Size(100, 40)), // ขนาดขั้นต่ำของปุ่ม
+                              ),
+                              onPressed: () {},
+                              child: const Text(
+                                'จองอีกครั้ง',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Visibility(
+                      visible: clinic.state == "cancel",
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: ElevatedButton(
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                Colors.amber.shade700), // สีพื้นหลัง
+                            shape: MaterialStateProperty.all<
+                                RoundedRectangleBorder>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                    50), // ปรับขนาดโดยกำหนดรัศมีที่ต้องการ
+                              ),
+                            ),
+                            elevation: MaterialStateProperty.all<double>(20),
+                            minimumSize: MaterialStateProperty.all<Size>(
+                                const Size(100, 40)), // ขนาดขั้นต่ำของปุ่ม
+                          ),
+                          onPressed: () {
+                            //showCancelDialog(booking.id);
+                          },
+                          child: const Text(
+                            'จองอีกครั้ง',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

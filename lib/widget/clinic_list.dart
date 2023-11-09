@@ -228,7 +228,14 @@ class _ClinicListState extends State<ClinicList> {
   }
 
   Padding buildValueReview(ListClinicModel clinic) {
-    List<String> stringList = ["ไม่มีคะแนน", "แย่", "พอใช้", "ดี", "ดีเยี่ยม"];
+    List<String> stringList = [
+      "ไม่มีคะแนน",
+      "แย่",
+      "พอใช้",
+      "ดี",
+      "ดีมาก",
+      "ดีเยี่ยม"
+    ];
     String text = stringList[clinic.rating!.floor()];
     String level = '${clinic.rating} $text';
 

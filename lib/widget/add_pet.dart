@@ -1,7 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:lovly_pet_app/model/exception_login.dart';
@@ -9,9 +13,6 @@ import 'package:lovly_pet_app/model/json-to-dart-model/pet_profile_j_to_d.dart';
 import 'package:lovly_pet_app/model/pet_profile.dart';
 import 'package:lovly_pet_app/unity/alert_dialog.dart';
 import 'package:lovly_pet_app/unity/api_router.dart';
-import 'package:http/http.dart' as http;
-import 'package:dio/dio.dart';
-import 'package:http_parser/http_parser.dart';
 
 class AddPet extends StatefulWidget {
   final String? token;
@@ -70,7 +71,6 @@ class _AddPetState extends State<AddPet> {
         );
 
         if (response.statusCode == 200) {
-          print(response.body);
           if (image != null) {
             PetProfileJToD petData =
                 PetProfileJToD.fromJson(jsonDecode(response.body));
@@ -429,7 +429,7 @@ class _AddPetState extends State<AddPet> {
                   BorderRadius.circular(50), // ปรับขนาดโดยกำหนดรัศมีที่ต้องการ
             ),
           ),
-          elevation: MaterialStateProperty.all<double>(20),
+          elevation: MaterialStateProperty.all<double>(5),
           minimumSize: MaterialStateProperty.all<Size>(
               const Size(140, 50)), // ขนาดขั้นต่ำของปุ่ม
         ),
@@ -453,7 +453,7 @@ class _AddPetState extends State<AddPet> {
                 BorderRadius.circular(50), // ปรับขนาดโดยกำหนดรัศมีที่ต้องการ
           ),
         ),
-        elevation: MaterialStateProperty.all<double>(20),
+        elevation: MaterialStateProperty.all<double>(5),
         minimumSize: MaterialStateProperty.all<Size>(
             const Size(140, 50)), // ขนาดขั้นต่ำของปุ่ม
       ),

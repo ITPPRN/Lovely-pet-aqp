@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:http/http.dart' as http;
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:lovly_pet_app/model/exception_login.dart';
+import 'package:lovly_pet_app/model/json-to-dart-model/booking_list_j_to_d.dart';
 import 'package:lovly_pet_app/model/json-to-dart-model/user_profile_j_to_d.dart';
 import 'package:lovly_pet_app/unity/alert_dialog.dart';
 import 'package:lovly_pet_app/unity/api_router.dart';
@@ -27,12 +29,66 @@ class _UserProfileState extends State<UserProfile> {
   String? token;
   UserProfileJToD? profile;
   final imageService = ImageService();
+  List<BookingListJToD> bookings = [];
+  List<BookingListJToD> cancelBookings = [];
+  List<BookingListJToD> successBookings = [];
+  List<BookingListJToD> waitBookings = [];
+  List<BookingListJToD> approveBooking = [];
+  List<BookingListJToD> disapprovalBookings = [];
+
+  Future<void> getBooking() async {
+    if (token != null) {
+      final url = Uri.parse("${ApiRouter.pathAPI}${SubPath.getBookingList}");
+      try {
+        final response = await http.post(
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        );
+
+        if (response.statusCode == 200) {
+          final List<dynamic> jsonList = jsonDecode(response.body);
+          bookings =
+              jsonList.map((json) => BookingListJToD.fromJson(json)).toList();
+
+          cancelBookings =
+              bookings.where((booking) => booking.state == "cancel").toList();
+          successBookings =
+              bookings.where((booking) => booking.state == "complete").toList();
+          waitBookings =
+              bookings.where((booking) => booking.state == "waite").toList();
+          approveBooking =
+              bookings.where((booking) => booking.state == "approve").toList();
+          disapprovalBookings = bookings
+              .where((booking) => booking.state == "disapproval")
+              .toList();
+
+          setState(() {});
+        } else {
+          ExceptionLogin exceptionModel =
+              ExceptionLogin.fromJson(jsonDecode(response.body));
+
+          if (exceptionModel.error != 'booking.booking.not.found') {
+            // ignore: use_build_context_synchronously
+            errorDialog(context,
+                '${exceptionModel.error} stats = ${response.statusCode}');
+          }
+        }
+      } catch (e) {
+        // ignore: use_build_context_synchronously
+        errorDialog(context, '$e');
+      }
+    }
+  }
 
   Future<void> findU() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     token = preferences.getString('token');
     setState(() {});
     getData();
+    getBooking();
   }
 
   Future<void> getData() async {
@@ -246,7 +302,9 @@ class _UserProfileState extends State<UserProfile> {
       padding: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: () {
-          navigateState(const CancleWidget());
+          navigateState(CancleWidget(
+            cancelBookings: cancelBookings,
+          ));
         },
         child: Stack(
           alignment: Alignment.topRight,
@@ -270,18 +328,24 @@ class _UserProfileState extends State<UserProfile> {
                 ),
               ],
             ),
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: Colors.red, // สีพื้นหลังของกรอบสี่เหลี่ยม
-                borderRadius:
-                    BorderRadius.circular(8), // ปรับรูปร่างของกรอบสี่เหลี่ยม
-              ),
-              child: const Text(
-                '5', // แทนด้วยตัวเลขที่คุณต้องการแสดง
-                style: TextStyle(
-                  color: Colors.white, // สีข้อความ
-                  fontWeight: FontWeight.bold,
+            Visibility(
+              visible: cancelBookings
+                  .isNotEmpty, // แสดง Container ถ้า cancelBookings ไม่ว่าง
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(
+                      255, 255, 13, 0), // สีพื้นหลังของ Container
+                  borderRadius:
+                      BorderRadius.circular(8), // รูปร่างของ Container
+                ),
+                child: Text(
+                  cancelBookings.length
+                      .toString(), // แสดงจำนวนรายการใน cancelBookings
+                  style: const TextStyle(
+                    color: Colors.white, // สีข้อความ
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -297,7 +361,10 @@ class _UserProfileState extends State<UserProfile> {
       padding: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: () {
-          navigateState(const SucceedWidget());
+          navigateState(SucceedWidget(
+            succeedBooking: successBookings,
+            token: token,
+          ));
         },
         child: Stack(
           alignment: Alignment.topRight,
@@ -317,18 +384,24 @@ class _UserProfileState extends State<UserProfile> {
                 const Text('สำเร็จ'),
               ], // ชิดด้านล่าง
             ),
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: Colors.red, // สีพื้นหลังของกรอบสี่เหลี่ยม
-                borderRadius:
-                    BorderRadius.circular(8), // ปรับรูปร่างของกรอบสี่เหลี่ยม
-              ),
-              child: const Text(
-                '5', // แทนด้วยตัวเลขที่คุณต้องการแสดง
-                style: TextStyle(
-                  color: Colors.white, // สีข้อความ
-                  fontWeight: FontWeight.bold,
+            Visibility(
+              visible: successBookings
+                  .isNotEmpty, // แสดง Container ถ้า cancelBookings ไม่ว่าง
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(
+                      255, 255, 13, 0), // สีพื้นหลังของ Container
+                  borderRadius:
+                      BorderRadius.circular(8), // รูปร่างของ Container
+                ),
+                child: Text(
+                  successBookings.length
+                      .toString(), // แสดงจำนวนรายการใน cancelBookings
+                  style: const TextStyle(
+                    color: Colors.white, // สีข้อความ
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -344,7 +417,9 @@ class _UserProfileState extends State<UserProfile> {
       padding: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: () {
-          navigateState(const ApproveWidget());
+          navigateState(ApproveWidget(
+            approveBooking: approveBooking,
+          ));
         },
         child: Stack(
           alignment: Alignment.topRight,
@@ -364,18 +439,24 @@ class _UserProfileState extends State<UserProfile> {
                 const Text('อนุมัติ'),
               ], // ชิดด้านล่าง
             ),
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: Colors.red, // สีพื้นหลังของกรอบสี่เหลี่ยม
-                borderRadius:
-                    BorderRadius.circular(8), // ปรับรูปร่างของกรอบสี่เหลี่ยม
-              ),
-              child: const Text(
-                '5', // แทนด้วยตัวเลขที่คุณต้องการแสดง
-                style: TextStyle(
-                  color: Colors.white, // สีข้อความ
-                  fontWeight: FontWeight.bold,
+            Visibility(
+              visible: approveBooking
+                  .isNotEmpty, // แสดง Container ถ้า cancelBookings ไม่ว่าง
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(
+                      255, 255, 13, 0), // สีพื้นหลังของ Container
+                  borderRadius:
+                      BorderRadius.circular(8), // รูปร่างของ Container
+                ),
+                child: Text(
+                  approveBooking.length
+                      .toString(), // แสดงจำนวนรายการใน cancelBookings
+                  style: const TextStyle(
+                    color: Colors.white, // สีข้อความ
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -391,7 +472,11 @@ class _UserProfileState extends State<UserProfile> {
       padding: const EdgeInsets.only(bottom: 10),
       child: InkWell(
         onTap: () {
-          navigateState(const WaiteWidget());
+          navigateState(WaiteWidget(
+            waitBookings: waitBookings,
+            disapprovalBookings: disapprovalBookings,
+            token: token,
+          ));
         },
         child: Stack(
           alignment: Alignment.topRight,
@@ -408,18 +493,25 @@ class _UserProfileState extends State<UserProfile> {
                 const Text('รออนุมัติ'),
               ], // ชิดด้านล่าง
             ),
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: Colors.red, // สีพื้นหลังของกรอบสี่เหลี่ยม
-                borderRadius:
-                    BorderRadius.circular(8), // ปรับรูปร่างของกรอบสี่เหลี่ยม
-              ),
-              child: const Text(
-                '5', // แทนด้วยตัวเลขที่คุณต้องการแสดง
-                style: TextStyle(
-                  color: Colors.white, // สีข้อความ
-                  fontWeight: FontWeight.bold,
+            Visibility(
+              visible: waitBookings.isNotEmpty ||
+                  disapprovalBookings
+                      .isNotEmpty, // แสดง Container ถ้า cancelBookings ไม่ว่าง
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(
+                      255, 255, 13, 0), // สีพื้นหลังของ Container
+                  borderRadius:
+                      BorderRadius.circular(8), // รูปร่างของ Container
+                ),
+                child: Text(
+                  (waitBookings.length + disapprovalBookings.length)
+                      .toString(), // แสดงจำนวนรายการใน cancelBookings
+                  style: const TextStyle(
+                    color: Colors.white, // สีข้อความ
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -459,7 +551,7 @@ class _UserProfileState extends State<UserProfile> {
         children: [
           Text(
             profile?.email == null ? '' : profile!.email!,
-            style: const TextStyle(fontSize: 16,fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           Padding(
             padding: const EdgeInsets.only(left: 2),
@@ -486,7 +578,7 @@ class _UserProfileState extends State<UserProfile> {
   }
 
   Container buildImage() {
-    String? photo ;
+    String? photo;
     if (profile != null) {
       photo = profile!.userPhoto;
     }
@@ -503,52 +595,51 @@ class _UserProfileState extends State<UserProfile> {
               size: 140,
             )
           : SizedBox(
-        width: 90, // ปรับขนาดของ Container ให้เหมาะสม
-        height: 90, // ปรับขนาดของ Container ให้เหมาะสม
-        child: ClipOval(
-          child: FittedBox(
-            fit: BoxFit
-                .cover, // ใช้ BoxFit.cover เพื่อปรับขนาดรูปให้เต็มตาม Container
-            child: FutureBuilder<dynamic>(
-              future: imageService.getImageProfile(token),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState ==
-                    ConnectionState.waiting) {
-                  return const CircularProgressIndicator();
-                } else if (snapshot.hasError) {
-                  return Text('เกิดข้อผิดพลาด: ${snapshot.error}');
-                } else if (snapshot.hasData) {
-                  return Container(
-                    decoration: const BoxDecoration(
-                      color: Colors.white, // สีพื้นหลังของ Container
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey, // สีของเงา
-                          offset: Offset(
-                              0, 3), // ตำแหน่งเงาในแนวแกน x และ y
-                          blurRadius: 4, // ความคมชัดของเงา
-                          spreadRadius: 2, // การกระจายของเงา
-                        ),
-                      ],
-                    ),
-                    width: MediaQuery.of(context).size.width,
-                    height: 200,
-                    child: Image.memory(
-                      snapshot.data!,
-                    ),
-                  );
-                } else {
-                  return Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: 300,
-                    color: Colors.amber,
-                  );
-                }
-              },
+              width: 90, // ปรับขนาดของ Container ให้เหมาะสม
+              height: 90, // ปรับขนาดของ Container ให้เหมาะสม
+              child: ClipOval(
+                child: FittedBox(
+                  fit: BoxFit
+                      .cover, // ใช้ BoxFit.cover เพื่อปรับขนาดรูปให้เต็มตาม Container
+                  child: FutureBuilder<dynamic>(
+                    future: imageService.getImageProfile(token),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const CircularProgressIndicator();
+                      } else if (snapshot.hasError) {
+                        return Text('เกิดข้อผิดพลาด: ${snapshot.error}');
+                      } else if (snapshot.hasData) {
+                        return Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.white, // สีพื้นหลังของ Container
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey, // สีของเงา
+                                offset:
+                                    Offset(0, 3), // ตำแหน่งเงาในแนวแกน x และ y
+                                blurRadius: 4, // ความคมชัดของเงา
+                                spreadRadius: 2, // การกระจายของเงา
+                              ),
+                            ],
+                          ),
+                          width: MediaQuery.of(context).size.width,
+                          height: 200,
+                          child: Image.memory(
+                            snapshot.data!,
+                          ),
+                        );
+                      } else {
+                        return Container(
+                          width: MediaQuery.of(context).size.width,
+                          height: 300,
+                          color: Colors.amber,
+                        );
+                      }
+                    },
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
-      ),
     );
   }
 }
