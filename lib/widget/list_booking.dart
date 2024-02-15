@@ -3,14 +3,17 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:lovly_pet_app/model/json-to-dart-model/booking_list_j_to_d.dart';
+import 'package:lovly_pet_app/widget/review.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../model/exception_login.dart';
 import '../unity/alert_dialog.dart';
 import '../unity/api_router.dart';
+import 'list_room.dart';
 
 class ListBooking extends StatefulWidget {
-  const ListBooking({Key? key});
+  const ListBooking({Key? key}) : super(key: key);
 
   @override
   State<ListBooking> createState() => _ListBookingState();
@@ -24,6 +27,15 @@ class _ListBookingState extends State<ListBooking> {
   List<BookingListJToD> waitBookings = [];
   List<BookingListJToD> approveBooking = [];
   List<BookingListJToD> disapprovalBookings = [];
+
+  void navigateReview(BookingListJToD? booking) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return Rating(
+        booking: booking!,
+        token: token,
+      );
+    }));
+  }
 
   Future<void> findU() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
@@ -137,6 +149,77 @@ class _ListBookingState extends State<ListBooking> {
     );
   }
 
+  Uri buildGoogleMapsUrl(double? latitude, double? longitude) {
+    return Uri.parse('https://www.google.com/maps/search/$latitude,$longitude');
+  }
+
+  Future<void> _launchUrl(double? latitude, double? longitude) async {
+    if (!await launchUrl(buildGoogleMapsUrl(latitude, longitude))) {
+      throw Exception('Could not launch buildGoogleMapsUrl()');
+    }
+  }
+
+  void navigateReBook(BookingListJToD? booking) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return ListRoom(id: booking!.hotelId);
+    }));
+  }
+
+  Future<void> postCancel(int id) async {
+    final url = Uri.parse("${ApiRouter.pathAPI}${SubPath.cancel}");
+    try {
+      //print("sent data");
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode(
+          {"idBooking": id},
+        ),
+      ); // ข้อมูลที่จะส่ง
+
+      if (response.statusCode == 200) {
+      } else {
+        ExceptionLogin exceptionModel =
+            ExceptionLogin.fromJson(jsonDecode(response.body));
+        // ignore: use_build_context_synchronously
+        errorDialog(context, '${exceptionModel.error}');
+      }
+    } catch (e) {
+      // ignore: use_build_context_synchronously
+      errorDialog(context, '$e');
+    }
+  }
+
+  Future<void> showCancelDialog(int? id) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('ยืนยันการยกเลิก?'),
+          content: const Text('คุณต้องการยกเลิกการจองนี้หรือไม่?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('ยกเลิก'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+            ),
+            TextButton(
+              child: const Text('ตกลง'),
+              onPressed: () {
+                postCancel(id!);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   GestureDetector buildComponentBookingList(
       BookingListJToD clinic, BuildContext context) {
     return GestureDetector(
@@ -190,7 +273,7 @@ class _ListBookingState extends State<ListBooking> {
                                 const Size(100, 40)), // ขนาดขั้นต่ำของปุ่ม
                           ),
                           onPressed: () {
-                            //showCancelDialog(booking.id);
+                            showCancelDialog(clinic.id);
                           },
                           child: const Text(
                             'ยกเลิก',
@@ -223,7 +306,7 @@ class _ListBookingState extends State<ListBooking> {
                                 const Size(100, 40)), // ขนาดขั้นต่ำของปุ่ม
                           ),
                           onPressed: () {
-                            //showCancelDialog(booking.id);
+                            _launchUrl(clinic.latitude, clinic.longitude);
                           },
                           child: const Text(
                             'นำทาง',
@@ -266,7 +349,7 @@ class _ListBookingState extends State<ListBooking> {
                                           100, 40)), // ขนาดขั้นต่ำของปุ่ม
                                 ),
                                 onPressed: () {
-                                  //showCancelDialog(booking.id);
+                                  showCancelDialog(clinic.id);
                                 },
                                 child: const Text(
                                   'ยกเลิก',
@@ -326,7 +409,7 @@ class _ListBookingState extends State<ListBooking> {
                               alignment: Alignment.bottomRight,
                               child: TextButton(
                                 onPressed: () {
-                                  //navigateReview(booking);
+                                  navigateReview(clinic);
                                 },
                                 child: Column(
                                   children: [
@@ -363,7 +446,9 @@ class _ListBookingState extends State<ListBooking> {
                                 minimumSize: MaterialStateProperty.all<Size>(
                                     const Size(100, 40)), // ขนาดขั้นต่ำของปุ่ม
                               ),
-                              onPressed: () {},
+                              onPressed: () {
+                                navigateReBook(clinic);
+                              },
                               child: const Text(
                                 'จองอีกครั้ง',
                                 style: TextStyle(
@@ -397,7 +482,7 @@ class _ListBookingState extends State<ListBooking> {
                                 const Size(100, 40)), // ขนาดขั้นต่ำของปุ่ม
                           ),
                           onPressed: () {
-                            //showCancelDialog(booking.id);
+                            navigateReBook(clinic);
                           },
                           child: const Text(
                             'จองอีกครั้ง',

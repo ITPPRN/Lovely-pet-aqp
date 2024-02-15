@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:lovly_pet_app/model/exception_login.dart';
 import 'package:lovly_pet_app/model/json-to-dart-model/list_room.dart';
 import 'package:lovly_pet_app/unity/alert_dialog.dart';
@@ -8,10 +9,10 @@ import 'package:lovly_pet_app/unity/api_router.dart';
 import 'package:lovly_pet_app/unity/get_name_image.dart';
 import 'package:lovly_pet_app/widget/room_data.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
 
 class ListRoom extends StatefulWidget {
   final int? id;
+
   const ListRoom({super.key, required this.id});
 
   @override
@@ -127,27 +128,27 @@ class _ListRoomState extends State<ListRoom> {
             },
           ),
         ),
-        buildIconFilter(),
+        //buildIconFilter(),
       ],
     );
   }
 
-  Positioned buildIconFilter() {
-    return Positioned(
-      top: 1, // ระยะห่างด้านบนจากขอบ
-      left: 1, // ระยะห่างด้านซ้ายจากขอบ
-      child: IconButton(
-        icon: const Icon(
-          Icons.tune, // แทนได้ด้วยไอคอนที่คุณต้องการใช้
-        ),
-        onPressed: () {
-          // รหัสที่คุณต้องการให้ทำเมื่อคลิกที่ไอคอน
-          print('คุณคลิกที่ไอคอน');
-        },
-        iconSize: 40, // กำหนดขนาดของไอคอน
-      ),
-    );
-  }
+  // Positioned buildIconFilter() {
+  //   return Positioned(
+  //     top: 1, // ระยะห่างด้านบนจากขอบ
+  //     left: 1, // ระยะห่างด้านซ้ายจากขอบ
+  //     child: IconButton(
+  //       icon: const Icon(
+  //         Icons.tune, // แทนได้ด้วยไอคอนที่คุณต้องการใช้
+  //       ),
+  //       onPressed: () {
+  //         // รหัสที่คุณต้องการให้ทำเมื่อคลิกที่ไอคอน
+  //         print('คุณคลิกที่ไอคอน');
+  //       },
+  //       iconSize: 40, // กำหนดขนาดของไอคอน
+  //     ),
+  //   );
+  // }
 
   ListView buildListView(AsyncSnapshot<List<ListRoomModelDart>> snapshot) {
     return ListView.builder(

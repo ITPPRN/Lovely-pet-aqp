@@ -11,7 +11,7 @@ import 'package:lovly_pet_app/unity/api_router.dart';
 import 'package:lovly_pet_app/widget/approve_widget.dart';
 import 'package:lovly_pet_app/widget/cancle_widget.dart';
 import 'package:lovly_pet_app/widget/edit_profile.dart';
-import 'package:lovly_pet_app/widget/succeed_widget.dart';
+import 'package:lovly_pet_app/widget/success_widget.dart';
 import 'package:lovly_pet_app/widget/waite_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -361,7 +361,7 @@ class _UserProfileState extends State<UserProfile> {
       padding: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: () {
-          navigateState(SucceedWidget(
+          navigateState(SuccessWidget(
             succeedBooking: successBookings,
             token: token,
           ));

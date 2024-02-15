@@ -4,50 +4,56 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:lovly_pet_app/model/exception_login.dart';
 import 'package:lovly_pet_app/model/json-to-dart-model/booking_list_j_to_d.dart';
+import 'package:lovly_pet_app/model/json-to-dart-model/review_json_to_dart.dart';
 import 'package:lovly_pet_app/unity/alert_dialog.dart';
 import 'package:lovly_pet_app/unity/api_router.dart';
 import 'package:lovly_pet_app/widget/review.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'list_room.dart';
 
-class HistoryService extends StatefulWidget {
-  const HistoryService({Key? key}) : super(key: key);
+class ListReview extends StatefulWidget {
+  final String? token;
+  final int? id;
+
+  const ListReview({super.key, required this.id, required this.token});
 
   @override
-  State<HistoryService> createState() => _HistoryServiceState();
+  State<ListReview> createState() => _ListReviewState();
 }
 
-class _HistoryServiceState extends State<HistoryService> {
-  String? token;
-  List<BookingListJToD> bookings = [];
-
+class _ListReviewState extends State<ListReview> {
+  List<ReviewJsonToDart> bookings = [];
 
   void navigateReview(BookingListJToD? booking) {
     Navigator.push(context, MaterialPageRoute(builder: (context) {
       return Rating(
         booking: booking!,
-        token: token,
+        token: widget.token,
       );
     }));
   }
 
-  Future<List<BookingListJToD>> getData() async {
-    if (token != null) {
-      final url = Uri.parse("${ApiRouter.pathAPI}${SubPath.history}");
+  Future<List<ReviewJsonToDart>> getData() async {
+    if (widget.token != null) {
+      final url = Uri.parse("${ApiRouter.pathAPI}${SubPath.listReview}");
       try {
         final response = await http.post(
           url,
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token',
+            'Authorization': 'Bearer ${widget.token}',
           },
+          body: json.encode(
+            {
+              'id': widget.id,
+            },
+          ),
         );
 
         if (response.statusCode == 200) {
           final List<dynamic> jsonList = jsonDecode(response.body);
           bookings =
-              jsonList.map((json) => BookingListJToD.fromJson(json)).toList();
+              jsonList.map((json) => ReviewJsonToDart.fromJson(json)).toList();
           return bookings; // Return the list of clinics
         } else {
           ExceptionLogin exceptionModel =
@@ -69,22 +75,23 @@ class _HistoryServiceState extends State<HistoryService> {
     }
   }
 
-  Future<void> findU() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    token = preferences.getString('token');
-    setState(() {});
-    // await getData();
-  }
-
   @override
   void initState() {
     super.initState();
-    findU();
+    getData();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -99,7 +106,7 @@ class _HistoryServiceState extends State<HistoryService> {
 
   Image buildImageHead() {
     return Image.asset(
-      'images/rec.png',
+      'images/score.png',
       width: 150,
       height: 150,
     );
@@ -123,7 +130,7 @@ class _HistoryServiceState extends State<HistoryService> {
         ),
         child: const Center(
           child: Text(
-            'ประวัติการใช้บริการ',
+            'คะเนนและรีวิว',
             style: TextStyle(fontSize: 20),
           ),
         ),
@@ -137,8 +144,8 @@ class _HistoryServiceState extends State<HistoryService> {
     }));
   }
 
-  FutureBuilder<List<BookingListJToD>> buildBookingList() {
-    return FutureBuilder<List<BookingListJToD>>(
+  FutureBuilder<List<ReviewJsonToDart>> buildBookingList() {
+    return FutureBuilder<List<ReviewJsonToDart>>(
       future: getData(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -158,7 +165,7 @@ class _HistoryServiceState extends State<HistoryService> {
     );
   }
 
-  ListView buildListView(AsyncSnapshot<List<BookingListJToD>> snapshot) {
+  ListView buildListView(AsyncSnapshot<List<ReviewJsonToDart>> snapshot) {
     return ListView.builder(
       shrinkWrap: true, // จัดหน้าประวัติให้ไม่มีข้อผิดพลาด
       itemCount: snapshot.data!.length,
@@ -174,7 +181,7 @@ class _HistoryServiceState extends State<HistoryService> {
   }
 
   GestureDetector buildComponentBookingList(
-      BookingListJToD clinic, BuildContext context) {
+      ReviewJsonToDart clinic, BuildContext context) {
     return GestureDetector(
       onTap: () {
         // navigate(clinic);
@@ -183,72 +190,26 @@ class _HistoryServiceState extends State<HistoryService> {
         padding: const EdgeInsets.all(8.0),
         child: Card(
           child: ListTile(
-            title: Text('Clinic name: ${clinic.nameHotel}'),
+            title: Text('Clinic name: ${clinic.hotelId}'),
             subtitle: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('room number: ${clinic.roomNumber}'),
-                Text(
-                    'start: ${clinic.bookingStartDate} - end: ${clinic.bookingEndDate}'),
-                Text('pet: ${clinic.pet!.petName}'),
+                Text('${clinic.comment}'),
+                Text('user name: ${clinic.userId}'),
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Visibility(
-                      visible:
-                          !clinic.feedback!, // ระบุว่าจะแสดงหรือซ่อน TextButton
-                      child: Align(
-                        alignment: Alignment.bottomRight,
-                        child: TextButton(
-                          onPressed: () {
-                            navigateReview(clinic);
-                          },
-                          child: Column(
-                            children: [
-                              Image.asset(
-                                'images/score.png',
-                                width: 50,
-                                height: 50,
-                              ),
-                              const Text(
-                                'ให้คะแนน',
-                                style: TextStyle(color: Colors.black),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
                     Padding(
                       padding: const EdgeInsets.only(top: 10),
-                      child: ElevatedButton(
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              Colors.amber.shade700), // สีพื้นหลัง
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                  50), // ปรับขนาดโดยกำหนดรัศมีที่ต้องการ
-                            ),
-                          ),
-                          elevation: MaterialStateProperty.all<double>(20),
-                          minimumSize: MaterialStateProperty.all<Size>(
-                              const Size(100, 40)), // ขนาดขั้นต่ำของปุ่ม
-                        ),
-                        onPressed: () {
-                          navigateReBook(clinic);
-                        },
-                        child: const Text(
-                          'จองอีกครั้ง',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                      child: Row(
+                        children:
+                        List.generate(clinic.rating!.floor(), (index) {
+                          return const Icon(Icons.star,
+                              color: Colors.yellow,
+                              size: 30); // แสดงดาวสีเหลืองขนาด 30 พิกเซล
+                        }),
                       ),
                     ),
                   ],

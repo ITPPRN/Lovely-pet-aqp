@@ -1,16 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:lovly_pet_app/model/json-to-dart-model/booking_list_j_to_d.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:lovly_pet_app/widget/list_room.dart';
+import 'package:lovly_pet_app/widget/review.dart';
 
-class ApproveWidget extends StatefulWidget {
-  final List<BookingListJToD> approveBooking;
-  const ApproveWidget({super.key, required this.approveBooking});
+class SuccessWidget extends StatefulWidget {
+  final List<BookingListJToD> succeedBooking;
+  final String? token;
+
+  const SuccessWidget(
+      {super.key, required this.succeedBooking, required this.token});
 
   @override
-  State<ApproveWidget> createState() => _ApproveWidgetState();
+  State<SuccessWidget> createState() => _SuccessWidgetState();
 }
 
-class _ApproveWidgetState extends State<ApproveWidget> {
+class _SuccessWidgetState extends State<SuccessWidget> {
+  void navigateReview(BookingListJToD? booking) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return Rating(
+        booking: booking!,
+        token: widget.token,
+      );
+    }));
+  }
+
+  void navigateReBook(BookingListJToD? booking) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return ListRoom(id: booking!.hotelId);
+    }));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,18 +46,18 @@ class _ApproveWidgetState extends State<ApproveWidget> {
 
   Column buildListView() {
     return Column(
-      children: widget.approveBooking.map((booking) {
+      children: widget.succeedBooking.map((booking) {
         return buildBookingItem(booking);
       }).toList(),
     );
   }
 
-  Widget buildBookingItem(BookingListJToD booking) {
+  Widget buildBookingItem(BookingListJToD? booking) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Card(
         child: ListTile(
-          title: Text('Clinic name: ${booking.nameHotel}'),
+          title: Text('Clinic name: ${booking!.nameHotel}'),
           subtitle: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,6 +70,31 @@ class _ApproveWidgetState extends State<ApproveWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  Visibility(
+                    visible:
+                        !booking.feedback!, // ระบุว่าจะแสดงหรือซ่อน TextButton
+                    child: Align(
+                      alignment: Alignment.bottomRight,
+                      child: TextButton(
+                        onPressed: () {
+                          navigateReview(booking);
+                        },
+                        child: Column(
+                          children: [
+                            Image.asset(
+                              'images/score.png',
+                              width: 50,
+                              height: 50,
+                            ),
+                            const Text(
+                              'ให้คะแนน',
+                              style: TextStyle(color: Colors.black),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                   Padding(
                     padding: const EdgeInsets.only(top: 10),
                     child: ElevatedButton(
@@ -69,10 +113,10 @@ class _ApproveWidgetState extends State<ApproveWidget> {
                             const Size(100, 40)), // ขนาดขั้นต่ำของปุ่ม
                       ),
                       onPressed: () {
-                        _launchUrl(booking.latitude, booking.longitude);
+                        navigateReBook(booking);
                       },
                       child: const Text(
-                        'นำทาง',
+                        'จองอีกครั้ง',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 15,
@@ -90,19 +134,9 @@ class _ApproveWidgetState extends State<ApproveWidget> {
     );
   }
 
-  Uri buildGoogleMapsUrl(double? latitude, double? longitude) {
-    return Uri.parse('https://www.google.com/maps/search/$latitude,$longitude');
-  }
-
-  Future<void> _launchUrl(double? latitude, double? longitude) async {
-    if (!await launchUrl(buildGoogleMapsUrl(latitude, longitude))) {
-      throw Exception('Could not launch buildGoogleMapsUrl()');
-    }
-  }
-
   Image buildImageHead() {
     return Image.asset(
-      'images/approve.png',
+      'images/record.png',
       width: 150,
       height: 150,
     );
@@ -126,7 +160,7 @@ class _ApproveWidgetState extends State<ApproveWidget> {
           ),
           child: const Center(
             child: Text(
-              'อนุมัติ',
+              'สำเร็จ',
               style: TextStyle(fontSize: 20),
             ),
           )),

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:lovly_pet_app/model/json-to-dart-model/booking_list_j_to_d.dart';
 
+import 'list_room.dart';
+
 class CancleWidget extends StatefulWidget {
   final List<BookingListJToD> cancelBookings;
+
   const CancleWidget({super.key, required this.cancelBookings});
 
   @override
@@ -22,6 +25,12 @@ class _CancleWidgetState extends State<CancleWidget> {
         ],
       ),
     );
+  }
+
+  void navigateReBook(BookingListJToD? booking) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return ListRoom(id: booking!.hotelId);
+    }));
   }
 
   Column buildListView() {
@@ -68,7 +77,7 @@ class _CancleWidgetState extends State<CancleWidget> {
                             const Size(100, 40)), // ขนาดขั้นต่ำของปุ่ม
                       ),
                       onPressed: () {
-                        //showCancelDialog(booking.id);
+                        navigateReBook(booking);
                       },
                       child: const Text(
                         'จองอีกครั้ง',

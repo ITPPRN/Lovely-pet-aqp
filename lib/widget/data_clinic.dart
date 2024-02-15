@@ -4,6 +4,7 @@ import 'package:lovly_pet_app/unity/alert_dialog.dart';
 import 'package:lovly_pet_app/unity/api_router.dart';
 import 'package:lovly_pet_app/unity/get_name_image.dart';
 import 'package:lovly_pet_app/unity/show_image.dart';
+import 'package:lovly_pet_app/widget/list_review.dart';
 import 'package:lovly_pet_app/widget/list_room.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -25,6 +26,15 @@ class _DataClinicState extends State<DataClinic> {
   void navigate(int? id) {
     Navigator.push(context, MaterialPageRoute(builder: (context) {
       return ListRoom(id: id);
+    }));
+  }
+
+  void navigateListReview(int? id) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return ListReview(
+        token: widget.token,
+        id: id,
+      );
     }));
   }
 
@@ -159,8 +169,7 @@ class _DataClinicState extends State<DataClinic> {
   }
 
   Uri buildGoogleMapsUrl(double? latitude, double? longitude) {
-    return Uri.parse(
-        'https://www.google.com/maps?q=${latitude.toString()},${longitude.toString()}');
+    return Uri.parse('https://www.google.com/maps/search/$latitude,$longitude');
   }
 
   Future<void> _launchUrl(double? latitude, double? longitude) async {
@@ -189,7 +198,8 @@ class _DataClinicState extends State<DataClinic> {
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                  '${widget.id!.additionalNotes.toString()}\n test01\n test02 \n dgdgrdg'),
+                  '${widget.id!.additionalNotes
+                      .toString()}\n test01\n test02 \n dgdgrdg'),
             ),
           ],
         ),
@@ -225,7 +235,7 @@ class _DataClinicState extends State<DataClinic> {
                 children: [
                   Row(
                     children:
-                        List.generate(widget.id!.rating!.floor(), (index) {
+                    List.generate(widget.id!.rating!.floor(), (index) {
                       return const Icon(Icons.star,
                           color: Colors.yellow,
                           size: 30); // แสดงดาวสีเหลืองขนาด 30 พิกเซล
@@ -252,7 +262,6 @@ class _DataClinicState extends State<DataClinic> {
       ),
     );
   }
-
   Align buildReviewButton() {
     List<String> stringList = ["ไม่มีคะแนน", "แย่", "พอใช้", "ดี", "ดีเยี่ยม"];
     String text = stringList[widget.id!.rating!.floor()];
@@ -260,7 +269,9 @@ class _DataClinicState extends State<DataClinic> {
     return Align(
       alignment: Alignment.bottomLeft,
       child: TextButton(
-        onPressed: () {},
+        onPressed: () {
+          navigateListReview(widget.id!.id);
+        },
         child: Text(
           "$level จำนวนรีวิว >",
           style: const TextStyle(color: Colors.black),
@@ -324,13 +335,16 @@ class _DataClinicState extends State<DataClinic> {
                               BoxShadow(
                                 color: Colors.grey, // สีของเงา
                                 offset:
-                                    Offset(0, 3), // ตำแหน่งเงาในแนวแกน x และ y
+                                Offset(0, 3), // ตำแหน่งเงาในแนวแกน x และ y
                                 blurRadius: 4, // ความคมชัดของเงา
                                 spreadRadius: 2, // การกระจายของเงา
                               ),
                             ],
                           ),
-                          width: MediaQuery.of(context).size.width,
+                          width: MediaQuery
+                              .of(context)
+                              .size
+                              .width,
                           height: 300,
                           child: Image.memory(
                             snapshot.data!,
@@ -338,7 +352,10 @@ class _DataClinicState extends State<DataClinic> {
                         );
                       } else {
                         return Container(
-                          width: MediaQuery.of(context).size.width,
+                          width: MediaQuery
+                              .of(context)
+                              .size
+                              .width,
                           height: 300,
                           color: Colors.amber,
                         );
@@ -357,7 +374,8 @@ class _DataClinicState extends State<DataClinic> {
   Container fakeImage(BuildContext context) {
     return Container(
       height: 300,
-      width: MediaQuery.of(context)
+      width: MediaQuery
+          .of(context)
           .size
           .width, // ทำให้ container ขยายตามความกว้างของหน้าจอ
       padding: const EdgeInsets.all(16.0), // กำหนด padding ตามความต้องการ

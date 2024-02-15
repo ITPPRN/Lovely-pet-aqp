@@ -76,6 +76,7 @@ class _AddPetState extends State<AddPet> {
                 PetProfileJToD.fromJson(jsonDecode(response.body));
             uploadImage(petData.id);
           }
+          Navigator.of(context).pop();
         } else {
           ExceptionLogin exceptionModel =
               ExceptionLogin.fromJson(jsonDecode(response.body));

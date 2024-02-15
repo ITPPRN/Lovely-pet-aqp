@@ -1,5 +1,7 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:lovly_pet_app/model/exception_login.dart';
 import 'package:lovly_pet_app/model/json-to-dart-model/pet_profile_j_to_d.dart';
 import 'package:lovly_pet_app/unity/alert_dialog.dart';
@@ -7,7 +9,6 @@ import 'package:lovly_pet_app/unity/api_router.dart';
 import 'package:lovly_pet_app/unity/get_name_image.dart';
 import 'package:lovly_pet_app/widget/add_pet.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
 
 class PetList extends StatefulWidget {
   const PetList({super.key});
@@ -201,7 +202,7 @@ class _PetListState extends State<PetList> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(left: 50),
+              padding: const EdgeInsets.only(left: 5),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,

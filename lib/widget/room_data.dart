@@ -23,6 +23,7 @@ class RoomData extends StatefulWidget {
 
 class _RoomDataState extends State<RoomData> {
   final imageService = ImageService();
+
   void navigate() {
     Navigator.push(context, MaterialPageRoute(builder: (context) {
       return RoomBooking(
@@ -342,5 +343,5 @@ class _RoomDataState extends State<RoomData> {
       ),
     );
   }
-  ////////////////////////////////////////////
+////////////////////////////////////////////
 }
