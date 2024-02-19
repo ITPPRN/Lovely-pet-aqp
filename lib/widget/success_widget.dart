@@ -26,7 +26,7 @@ class _SuccessWidgetState extends State<SuccessWidget> {
 
   void navigateReBook(BookingListJToD? booking) {
     Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return ListRoom(id: booking!.hotelId);
+      return ListRoom(id: booking!.hotelId,token: widget.token,);
     }));
   }
 

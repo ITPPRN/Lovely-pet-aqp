@@ -25,7 +25,7 @@ class _DataClinicState extends State<DataClinic> {
 
   void navigate(int? id) {
     Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return ListRoom(id: id);
+      return ListRoom(id: id,token: widget.token,);
     }));
   }
 
@@ -34,6 +34,7 @@ class _DataClinicState extends State<DataClinic> {
       return ListReview(
         token: widget.token,
         id: id,
+        hotelName: widget.id!.hotelName,
       );
     }));
   }

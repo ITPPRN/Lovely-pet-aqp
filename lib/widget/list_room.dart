@@ -12,35 +12,29 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ListRoom extends StatefulWidget {
   final int? id;
+  final String? token;
 
-  const ListRoom({super.key, required this.id});
+  const ListRoom({super.key, required this.id, required this.token});
 
   @override
   State<ListRoom> createState() => _ListRoomState();
 }
 
 class _ListRoomState extends State<ListRoom> {
-  String? token;
   List<ListRoomModelDart> rooms = [];
 
   final imageService = ImageService();
 
-  Future<void> findU() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    token = preferences.getString('token');
-    setState(() {});
-    //await getData();
-  }
 
   Future<List<ListRoomModelDart>> getData() async {
-    if (token != null) {
+    if (widget.token != null) {
       final url = Uri.parse("${ApiRouter.pathAPI}/room/list-all-room");
       try {
         final response = await http.post(
           url,
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token',
+            'Authorization': 'Bearer ${widget.token}',
           },
           body: json.encode(
             {"hotelId": widget.id},
@@ -76,14 +70,14 @@ class _ListRoomState extends State<ListRoom> {
   @override
   void initState() {
     super.initState();
-    findU();
+
   }
 
   void navigate(ListRoomModelDart? id) {
     Navigator.push(context, MaterialPageRoute(builder: (context) {
       return RoomData(
         id: id,
-        token: token,
+        token: widget.token,
         idHotel: widget.id,
       );
     }));
@@ -132,24 +126,7 @@ class _ListRoomState extends State<ListRoom> {
       ],
     );
   }
-
-  // Positioned buildIconFilter() {
-  //   return Positioned(
-  //     top: 1, // ระยะห่างด้านบนจากขอบ
-  //     left: 1, // ระยะห่างด้านซ้ายจากขอบ
-  //     child: IconButton(
-  //       icon: const Icon(
-  //         Icons.tune, // แทนได้ด้วยไอคอนที่คุณต้องการใช้
-  //       ),
-  //       onPressed: () {
-  //         // รหัสที่คุณต้องการให้ทำเมื่อคลิกที่ไอคอน
-  //         print('คุณคลิกที่ไอคอน');
-  //       },
-  //       iconSize: 40, // กำหนดขนาดของไอคอน
-  //     ),
-  //   );
-  // }
-
+ 
   ListView buildListView(AsyncSnapshot<List<ListRoomModelDart>> snapshot) {
     return ListView.builder(
       itemCount: snapshot.data!.length,
@@ -157,12 +134,7 @@ class _ListRoomState extends State<ListRoom> {
         final clinic = snapshot.data![index];
         return Padding(
           padding: const EdgeInsets.all(10.0),
-          child: Column(
-            children: [
-              buildImages(clinic),
-              buildComponentRoom(clinic, context),
-            ],
-          ),
+          child: buildComponentRoom(clinic, context),
         );
       },
     );
@@ -192,9 +164,20 @@ class _ListRoomState extends State<ListRoom> {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        //crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          buildTextRoomNumber(clinic),
+          buildImages(clinic),
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                buildTextRoomNumber(clinic),
+              ],
+            ),
+          ),
           buildTextRoomTypeAndPrice(clinic),
         ],
       ),
@@ -241,7 +224,7 @@ class _ListRoomState extends State<ListRoom> {
   Future<List<String>> getNameListImages(int? id) async {
     try {
       List<String> nameImages1 = await imageService.getImageNameRoom(
-          token, SubPath.getListRoomImage, id);
+          widget.token, SubPath.getListRoomImage, id);
       //print('pull images successfuly');
       //print(nameImages1);
       return nameImages1;
@@ -279,7 +262,7 @@ class _ListRoomState extends State<ListRoom> {
                   },
                   child: FutureBuilder<dynamic>(
                     future: imageService.getImageRoom(
-                        token, SubPath.getRoomImage, imageUrl),
+                        widget.token, SubPath.getRoomImage, imageUrl),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const CircularProgressIndicator();

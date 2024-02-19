@@ -5,8 +5,9 @@ import 'list_room.dart';
 
 class CancleWidget extends StatefulWidget {
   final List<BookingListJToD> cancelBookings;
+  final String? token;
 
-  const CancleWidget({super.key, required this.cancelBookings});
+  const CancleWidget({super.key, required this.cancelBookings, required this.token});
 
   @override
   State<CancleWidget> createState() => _CancleWidgetState();
@@ -29,7 +30,7 @@ class _CancleWidgetState extends State<CancleWidget> {
 
   void navigateReBook(BookingListJToD? booking) {
     Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return ListRoom(id: booking!.hotelId);
+      return ListRoom(id: booking!.hotelId,token:widget.token,);
     }));
   }
 

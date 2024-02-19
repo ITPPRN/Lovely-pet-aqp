@@ -128,7 +128,9 @@ class _UserProfileState extends State<UserProfile> {
 
   void navigateAddPet() {
     Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return const EditProfile();
+      return EditProfile(
+        token: token,
+      );
     }));
   }
 
@@ -304,6 +306,7 @@ class _UserProfileState extends State<UserProfile> {
         onTap: () {
           navigateState(CancleWidget(
             cancelBookings: cancelBookings,
+            token: token,
           ));
         },
         child: Stack(

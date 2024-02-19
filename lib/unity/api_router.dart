@@ -47,4 +47,5 @@ class SubPath {
   static const String listReview = '/review/list-review';
 
   static const String cancel = '/booking/cancel';
+  static const String updateProfile = '/user/update-normal';
 }
