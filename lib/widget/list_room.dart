@@ -8,7 +8,6 @@ import 'package:lovly_pet_app/unity/alert_dialog.dart';
 import 'package:lovly_pet_app/unity/api_router.dart';
 import 'package:lovly_pet_app/unity/get_name_image.dart';
 import 'package:lovly_pet_app/widget/room_data.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ListRoom extends StatefulWidget {
   final int? id;
@@ -26,9 +25,9 @@ class _ListRoomState extends State<ListRoom> {
   final imageService = ImageService();
 
 
-  Future<List<ListRoomModelDart>> getData() async {
+ Future<List<ListRoomModelDart>> getData() async {
     if (widget.token != null) {
-      final url = Uri.parse("${ApiRouter.pathAPI}/room/list-all-room");
+      final url = Uri.parse("${ApiRouter.pathAPI}/room/list-state-room");
       try {
         final response = await http.post(
           url,
@@ -37,7 +36,10 @@ class _ListRoomState extends State<ListRoom> {
             'Authorization': 'Bearer ${widget.token}',
           },
           body: json.encode(
-            {"hotelId": widget.id},
+            {
+              "hotelId": widget.id,
+              "status":"empty"
+            },
           ),
         );
 
