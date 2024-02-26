@@ -9,8 +9,6 @@ import 'package:lovly_pet_app/unity/api_router.dart';
 import 'package:lovly_pet_app/widget/review.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'list_room.dart';
-
 class HistoryService extends StatefulWidget {
   const HistoryService({Key? key}) : super(key: key);
 
@@ -21,7 +19,6 @@ class HistoryService extends StatefulWidget {
 class _HistoryServiceState extends State<HistoryService> {
   String? token;
   List<BookingListJToD> bookings = [];
-
 
   void navigateReview(BookingListJToD? booking) {
     Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -69,6 +66,41 @@ class _HistoryServiceState extends State<HistoryService> {
     }
   }
 
+  Future<void> getData1() async {
+    if (token != null) {
+      final url = Uri.parse("${ApiRouter.pathAPI}${SubPath.getMyPet}");
+      try {
+        final response = await http.post(
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        );
+
+        if (response.statusCode == 200) {
+          final List<dynamic> jsonList = jsonDecode(response.body);
+          bookings =
+              jsonList.map((json) => BookingListJToD.fromJson(json)).toList();
+          setState(() {}); // รีเฟรชหน้าจอ
+        } else {
+          ExceptionLogin exceptionModel =
+              ExceptionLogin.fromJson(jsonDecode(response.body));
+          // ignore: use_build_context_synchronously
+          errorDialog(context,
+              '${exceptionModel.error} stats = ${response.statusCode}');
+          return; // ออกจากฟังก์ชันในกรณีข้อผิดพลาด
+        }
+      } catch (e) {
+        // ignore: use_build_context_synchronously
+        errorDialog(context, '$e');
+        return; // ออกจากฟังก์ชันในกรณีข้อผิดพลาด
+      }
+    } else {
+      return; // ออกจากฟังก์ชันถ้า token เป็น null
+    }
+  }
+
   Future<void> findU() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     token = preferences.getString('token');
@@ -85,18 +117,182 @@ class _HistoryServiceState extends State<HistoryService> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            buildBoxTextHead(),
-            buildImageHead(),
-            buildBookingList(),
-          ],
-        ),
-      ),
+      body: buildPetList(),
     );
   }
 
+  ///////////////////////////////////////////////////////
+  FutureBuilder<List<BookingListJToD>> buildPetList() {
+    return FutureBuilder<List<BookingListJToD>>(
+      future: getData(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          // ในขณะที่รอข้อมูล
+          return const CircularProgressIndicator();
+        } else if (snapshot.hasError) {
+          // หากเกิดข้อผิดพลาด
+          return Text('เกิดข้อผิดพลาด: ${snapshot.error}');
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          // หากไม่มีข้อมูลหรือข้อมูลว่างเปล่า
+          return const Text('ไม่มีรายชื่อคลีนิก');
+        } else {
+          // หากมีข้อมูลและไม่มีข้อผิดพลาด
+          return RefreshIndicator(
+            onRefresh: getData1,
+            child: buildListView(snapshot),
+          );
+        }
+      },
+    );
+  }
+
+  ListView buildListView(AsyncSnapshot<List<BookingListJToD>> snapshot) {
+    return ListView.builder(
+      itemCount: snapshot.data!.length + 1, // บวก 1 เพื่อเพิ่มส่วนหัว
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          // สร้างส่วนหัว
+          return Column(
+            children: [
+              buildBoxTextHead(),
+              buildImageHead(),
+            ],
+          );
+        } else {
+          // สร้างรายการข้อมูล
+          final clinic = snapshot.data![index - 1];
+          return Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                buildComponentPets(clinic, context),
+              ],
+            ),
+          );
+        }
+      },
+    );
+  }
+
+
+  // ListView buildListView(AsyncSnapshot<List<BookingListJToD>> snapshot) {
+  //   return ListView.builder(
+  //     itemCount: snapshot.data!.length,
+  //     itemBuilder: (context, index) {
+  //       final clinic = snapshot.data![index];
+  //
+  //       return Padding(
+  //         padding: const EdgeInsets.all(10.0),
+  //         child: Column(
+  //           mainAxisSize: MainAxisSize.max,
+  //           children: [
+  //             buildComponentPets(clinic, context),
+  //           ],
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
+
+  Padding buildComponentPets(
+      BookingListJToD clinic, BuildContext context) {
+    return Padding(
+    padding: const EdgeInsets.all(8.0),
+    child: Card(
+      child: ListTile(
+        title: Text('Clinic name: ${clinic.nameHotel}'),
+        subtitle: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('room number: ${clinic.roomNumber}'),
+            Text(
+                'start: ${clinic.bookingStartDate} - end: ${clinic.bookingEndDate}'),
+            Text('pet: ${clinic.pet!.petName}'),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Visibility(
+                  visible:
+                      !clinic.feedback!, // ระบุว่าจะแสดงหรือซ่อน TextButton
+                  child: Align(
+                    alignment: Alignment.bottomRight,
+                    child: TextButton(
+                      onPressed: () {
+                        navigateReview(clinic);
+                      },
+                      child: Column(
+                        children: [
+                          Image.asset(
+                            'images/score.png',
+                            width: 50,
+                            height: 50,
+                          ),
+                          const Text(
+                            'ให้คะแนน',
+                            style: TextStyle(color: Colors.black),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: ElevatedButton(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all<Color>(
+                          Colors.amber.shade700), // สีพื้นหลัง
+                      shape:
+                          MaterialStateProperty.all<RoundedRectangleBorder>(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                              50), // ปรับขนาดโดยกำหนดรัศมีที่ต้องการ
+                        ),
+                      ),
+                      elevation: MaterialStateProperty.all<double>(20),
+                      minimumSize: MaterialStateProperty.all<Size>(
+                          const Size(100, 40)), // ขนาดขั้นต่ำของปุ่ม
+                    ),
+                    onPressed: () {
+                      //navigateReBook(clinic);
+                    },
+                    child: const Text(
+                      'จองอีกครั้ง',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ),
+    );
+  }
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Scaffold(
+  //     body: SingleChildScrollView(
+  //       child: Column(
+  //         children: [
+  //           buildBoxTextHead(),
+  //           buildImageHead(),
+  //           buildBookingList(),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+  //
   Image buildImageHead() {
     return Image.asset(
       'images/rec.png',
@@ -130,134 +326,204 @@ class _HistoryServiceState extends State<HistoryService> {
       ),
     );
   }
+//
+// void navigateReBook(BookingListJToD? booking) {
+//   Navigator.push(context, MaterialPageRoute(builder: (context) {
+//     return ListRoom(id: booking!.hotelId,token: token,);
+//   }));
+// }
+//
+// FutureBuilder<List<BookingListJToD>> buildBookingList() {
+//   return FutureBuilder<List<BookingListJToD>>(
+//     future: getData(),
+//     builder: (context, snapshot) {
+//       if (snapshot.connectionState == ConnectionState.waiting) {
+//         // ในขณะที่รอข้อมูล
+//         return const CircularProgressIndicator();
+//       } else if (snapshot.hasError) {
+//         // หากเกิดข้อผิดพลาด
+//         return Text('เกิดข้อผิดพลาด: ${snapshot.error}');
+//       } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+//         // หากไม่มีข้อมูลหรือข้อมูลว่างเปล่า
+//         return const Text('ไม่มีรายชื่อคลีนิก');
+//       } else {
+//         // หากมีข้อมูลและไม่มีข้อผิดพลาด
+//         return buildListView(snapshot);
+//       }
+//     },
+//   );
+// }
+//
+// ListView buildListView(AsyncSnapshot<List<BookingListJToD>> snapshot) {
+//   return ListView.builder(
+//     shrinkWrap: true, // จัดหน้าประวัติให้ไม่มีข้อผิดพลาด
+//     itemCount: snapshot.data!.length,
+//     itemBuilder: (context, index) {
+//       final clinic = snapshot.data![index];
+//
+//       return Padding(
+//         padding: const EdgeInsets.all(10.0),
+//         child: Card(
+//           child: ListTile(
+//             title: Text('Clinic name: ${clinic.nameHotel}'),
+//             subtitle: Column(
+//               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//               crossAxisAlignment: CrossAxisAlignment.start,
+//               children: [
+//                 Text('room number: ${clinic.roomNumber}'),
+//                 Text(
+//                     'start: ${clinic.bookingStartDate} - end: ${clinic.bookingEndDate}'),
+//                 Text('pet: ${clinic.pet!.petName}'),
+//                 Row(
+//                   crossAxisAlignment: CrossAxisAlignment.start,
+//                   mainAxisAlignment: MainAxisAlignment.end,
+//                   children: [
+//                     Visibility(
+//                       visible:
+//                       !clinic.feedback!, // ระบุว่าจะแสดงหรือซ่อน TextButton
+//                       child: Align(
+//                         alignment: Alignment.bottomRight,
+//                         child: TextButton(
+//                           onPressed: () {
+//                             navigateReview(clinic);
+//                           },
+//                           child: Column(
+//                             children: [
+//                               Image.asset(
+//                                 'images/score.png',
+//                                 width: 50,
+//                                 height: 50,
+//                               ),
+//                               const Text(
+//                                 'ให้คะแนน',
+//                                 style: TextStyle(color: Colors.black),
+//                               ),
+//                             ],
+//                           ),
+//                         ),
+//                       ),
+//                     ),
+//                     Padding(
+//                       padding: const EdgeInsets.only(top: 10),
+//                       child: ElevatedButton(
+//                         style: ButtonStyle(
+//                           backgroundColor: MaterialStateProperty.all<Color>(
+//                               Colors.amber.shade700), // สีพื้นหลัง
+//                           shape:
+//                           MaterialStateProperty.all<RoundedRectangleBorder>(
+//                             RoundedRectangleBorder(
+//                               borderRadius: BorderRadius.circular(
+//                                   50), // ปรับขนาดโดยกำหนดรัศมีที่ต้องการ
+//                             ),
+//                           ),
+//                           elevation: MaterialStateProperty.all<double>(20),
+//                           minimumSize: MaterialStateProperty.all<Size>(
+//                               const Size(100, 40)), // ขนาดขั้นต่ำของปุ่ม
+//                         ),
+//                         onPressed: () {
+//                           navigateReBook(clinic);
+//                         },
+//                         child: const Text(
+//                           'จองอีกครั้ง',
+//                           style: TextStyle(
+//                             color: Colors.white,
+//                             fontSize: 15,
+//                             fontWeight: FontWeight.bold,
+//                           ),
+//                         ),
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ],
+//             ),
+//           ),
+//         ),
+//       );
+//     },
+//   );
+// }
 
-  void navigateReBook(BookingListJToD? booking) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return ListRoom(id: booking!.hotelId,token: token,);
-    }));
-  }
-
-  FutureBuilder<List<BookingListJToD>> buildBookingList() {
-    return FutureBuilder<List<BookingListJToD>>(
-      future: getData(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          // ในขณะที่รอข้อมูล
-          return const CircularProgressIndicator();
-        } else if (snapshot.hasError) {
-          // หากเกิดข้อผิดพลาด
-          return Text('เกิดข้อผิดพลาด: ${snapshot.error}');
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          // หากไม่มีข้อมูลหรือข้อมูลว่างเปล่า
-          return const Text('ไม่มีรายชื่อคลีนิก');
-        } else {
-          // หากมีข้อมูลและไม่มีข้อผิดพลาด
-          return buildListView(snapshot);
-        }
-      },
-    );
-  }
-
-  ListView buildListView(AsyncSnapshot<List<BookingListJToD>> snapshot) {
-    return ListView.builder(
-      shrinkWrap: true, // จัดหน้าประวัติให้ไม่มีข้อผิดพลาด
-      itemCount: snapshot.data!.length,
-      itemBuilder: (context, index) {
-        final clinic = snapshot.data![index];
-
-        return Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: buildComponentBookingList(clinic, context),
-        );
-      },
-    );
-  }
-
-  GestureDetector buildComponentBookingList(
-      BookingListJToD clinic, BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        // navigate(clinic);
-      },
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Card(
-          child: ListTile(
-            title: Text('Clinic name: ${clinic.nameHotel}'),
-            subtitle: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('room number: ${clinic.roomNumber}'),
-                Text(
-                    'start: ${clinic.bookingStartDate} - end: ${clinic.bookingEndDate}'),
-                Text('pet: ${clinic.pet!.petName}'),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Visibility(
-                      visible:
-                          !clinic.feedback!, // ระบุว่าจะแสดงหรือซ่อน TextButton
-                      child: Align(
-                        alignment: Alignment.bottomRight,
-                        child: TextButton(
-                          onPressed: () {
-                            navigateReview(clinic);
-                          },
-                          child: Column(
-                            children: [
-                              Image.asset(
-                                'images/score.png',
-                                width: 50,
-                                height: 50,
-                              ),
-                              const Text(
-                                'ให้คะแนน',
-                                style: TextStyle(color: Colors.black),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10),
-                      child: ElevatedButton(
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              Colors.amber.shade700), // สีพื้นหลัง
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                  50), // ปรับขนาดโดยกำหนดรัศมีที่ต้องการ
-                            ),
-                          ),
-                          elevation: MaterialStateProperty.all<double>(20),
-                          minimumSize: MaterialStateProperty.all<Size>(
-                              const Size(100, 40)), // ขนาดขั้นต่ำของปุ่ม
-                        ),
-                        onPressed: () {
-                          navigateReBook(clinic);
-                        },
-                        child: const Text(
-                          'จองอีกครั้ง',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+// Padding buildComponentBookingList(
+//     BookingListJToD clinic, BuildContext context) {
+//   return Padding(
+//     padding: const EdgeInsets.all(8.0),
+//     child: Card(
+//       child: ListTile(
+//         title: Text('Clinic name: ${clinic.nameHotel}'),
+//         subtitle: Column(
+//           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             Text('room number: ${clinic.roomNumber}'),
+//             Text(
+//                 'start: ${clinic.bookingStartDate} - end: ${clinic.bookingEndDate}'),
+//             Text('pet: ${clinic.pet!.petName}'),
+//             Row(
+//               crossAxisAlignment: CrossAxisAlignment.start,
+//               mainAxisAlignment: MainAxisAlignment.end,
+//               children: [
+//                 Visibility(
+//                   visible:
+//                       !clinic.feedback!, // ระบุว่าจะแสดงหรือซ่อน TextButton
+//                   child: Align(
+//                     alignment: Alignment.bottomRight,
+//                     child: TextButton(
+//                       onPressed: () {
+//                         navigateReview(clinic);
+//                       },
+//                       child: Column(
+//                         children: [
+//                           Image.asset(
+//                             'images/score.png',
+//                             width: 50,
+//                             height: 50,
+//                           ),
+//                           const Text(
+//                             'ให้คะแนน',
+//                             style: TextStyle(color: Colors.black),
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                   ),
+//                 ),
+//                 Padding(
+//                   padding: const EdgeInsets.only(top: 10),
+//                   child: ElevatedButton(
+//                     style: ButtonStyle(
+//                       backgroundColor: MaterialStateProperty.all<Color>(
+//                           Colors.amber.shade700), // สีพื้นหลัง
+//                       shape:
+//                           MaterialStateProperty.all<RoundedRectangleBorder>(
+//                         RoundedRectangleBorder(
+//                           borderRadius: BorderRadius.circular(
+//                               50), // ปรับขนาดโดยกำหนดรัศมีที่ต้องการ
+//                         ),
+//                       ),
+//                       elevation: MaterialStateProperty.all<double>(20),
+//                       minimumSize: MaterialStateProperty.all<Size>(
+//                           const Size(100, 40)), // ขนาดขั้นต่ำของปุ่ม
+//                     ),
+//                     onPressed: () {
+//                       navigateReBook(clinic);
+//                     },
+//                     child: const Text(
+//                       'จองอีกครั้ง',
+//                       style: TextStyle(
+//                         color: Colors.white,
+//                         fontSize: 15,
+//                         fontWeight: FontWeight.bold,
+//                       ),
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ],
+//         ),
+//       ),
+//     ),
+//   );
+// }
 }

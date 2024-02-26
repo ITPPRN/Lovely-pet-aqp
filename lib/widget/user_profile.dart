@@ -126,10 +126,12 @@ class _UserProfileState extends State<UserProfile> {
     findU();
   }
 
-  void navigateAddPet() {
+  void navigateAddPet(String name,String number) {
     Navigator.push(context, MaterialPageRoute(builder: (context) {
       return EditProfile(
         token: token,
+        name: name,
+        phoneNumber: number,
       );
     }));
   }
@@ -309,48 +311,22 @@ class _UserProfileState extends State<UserProfile> {
             token: token,
           ));
         },
-        child: Stack(
-          alignment: Alignment.topRight,
+        child: Column(
           children: [
             Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Image.asset(
-                        'images/cancle.png',
-                        width: 50,
-                        height: 50,
-                      ),
-                    ),
-                    const Text('ยกเลิก'),
-                  ], // ชิดด้านล่าง
-                ),
-              ],
-            ),
-            Visibility(
-              visible: cancelBookings
-                  .isNotEmpty, // แสดง Container ถ้า cancelBookings ไม่ว่าง
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(
-                      255, 255, 13, 0), // สีพื้นหลังของ Container
-                  borderRadius:
-                      BorderRadius.circular(8), // รูปร่างของ Container
-                ),
-                child: Text(
-                  cancelBookings.length
-                      .toString(), // แสดงจำนวนรายการใน cancelBookings
-                  style: const TextStyle(
-                    color: Colors.white, // สีข้อความ
-                    fontWeight: FontWeight.bold,
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Image.asset(
+                    'images/cancle.png',
+                    width: 50,
+                    height: 50,
                   ),
                 ),
-              ),
+                const Text('ยกเลิก'),
+              ], // ชิดด้านล่าง
             ),
           ],
         ),
@@ -368,52 +344,28 @@ class _UserProfileState extends State<UserProfile> {
             succeedBooking: successBookings,
             token: token,
           ));
+
         },
-        child: Stack(
-          alignment: Alignment.topRight,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Image.asset(
-                    'images/record.png',
-                    width: 50,
-                    height: 50,
-                  ),
-                ),
-                const Text('สำเร็จ'),
-              ], // ชิดด้านล่าง
-            ),
-            Visibility(
-              visible: successBookings
-                  .isNotEmpty, // แสดง Container ถ้า cancelBookings ไม่ว่าง
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(
-                      255, 255, 13, 0), // สีพื้นหลังของ Container
-                  borderRadius:
-                      BorderRadius.circular(8), // รูปร่างของ Container
-                ),
-                child: Text(
-                  successBookings.length
-                      .toString(), // แสดงจำนวนรายการใน cancelBookings
-                  style: const TextStyle(
-                    color: Colors.white, // สีข้อความ
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Image.asset(
+                'images/record.png',
+                width: 50,
+                height: 50,
               ),
             ),
+            const Text('สำเร็จ'),
           ],
         ),
-        // ตั้งค่าการจัดตำแหน่งข้อความภายใน InkWell
       ),
     );
   }
+
+
 
   Padding buildApprove() {
     return Padding(
@@ -439,7 +391,7 @@ class _UserProfileState extends State<UserProfile> {
                     height: 50,
                   ),
                 ),
-                const Text('อนุมัติ'),
+                const Text('รับบริการ'),
               ], // ชิดด้านล่าง
             ),
             Visibility(
@@ -564,7 +516,7 @@ class _UserProfileState extends State<UserProfile> {
             padding: const EdgeInsets.only(top: 10, left: 2),
             child: InkWell(
               onTap: () {
-                navigateAddPet();
+                navigateAddPet(profile!.name!,profile!.phoneNumber!);
               },
               child: Text(
                 'แก้ไขข้อมูล >',

@@ -237,7 +237,7 @@ class _ClinicListState extends State<ClinicList> {
       "ดีเยี่ยม"
     ];
     String text = stringList[clinic.rating!.floor()];
-    String level = '${clinic.rating} $text';
+    String level = '${clinic.rating!.toStringAsFixed(1)} $text';
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 0, 0, 8),

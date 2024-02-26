@@ -122,47 +122,7 @@ class _ListReviewState extends State<ListReview> {
           },
         ),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Card(
-                elevation: 4, // ความสูงของเงาของการ์ด
-                margin: const EdgeInsets.all(8), // ระยะห่างของการ์ดจากขอบอื่น ๆ
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8), // รูปร่างของการ์ด
-                ),
-                child: SizedBox(
-                  width: MediaQuery.of(context)
-                      .size
-                      .width, // กำหนดความกว้างของการ์ด
-                  height: 100, // กำหนดความสูงของการ์ด
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    // ระยะห่างของเนื้อหาภายในการ์ด
-                    child: Center(
-                      child: Text(
-                        'สถานบริการรับฝากสัตว์เลี้ยง: ${widget.hotelName}',
-                        style: const TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ),
-              )),
-          const Padding(
-            padding: EdgeInsets.only(left: 30, bottom: 8, right: 8, top: 8),
-            child: Text(
-              'รีวิวสถานรับฝากสัตว์เลี้ยง',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-          ),
-          Expanded(
-            child: buildPetList(),
-          ),
-        ],
-      ),
+      body: buildPetList(),
     );
   }
 
@@ -193,19 +153,60 @@ class _ListReviewState extends State<ListReview> {
 
   ListView buildListView(AsyncSnapshot<List<ReviewJsonToDart>> snapshot) {
     return ListView.builder(
-      itemCount: snapshot.data!.length,
+      itemCount: snapshot.data!.length + 1, // บวก 1 เพื่อเพิ่มส่วนหัว
       itemBuilder: (context, index) {
-        final clinic = snapshot.data![index];
-
-        return Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
+        if (index == 0) {
+          // สร้างส่วนหัว
+          return Column(
             children: [
-              buildComponentPets(clinic, context),
+              Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Card(
+                    elevation: 4, // ความสูงของเงาของการ์ด
+                    margin: const EdgeInsets.all(8), // ระยะห่างของการ์ดจากขอบอื่น ๆ
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8), // รูปร่างของการ์ด
+                    ),
+                    child: SizedBox(
+                      width: MediaQuery.of(context)
+                          .size
+                          .width, // กำหนดความกว้างของการ์ด
+                      height: 100, // กำหนดความสูงของการ์ด
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        // ระยะห่างของเนื้อหาภายในการ์ด
+                        child: Center(
+                          child: Text(
+                            'สถานบริการรับฝากสัตว์เลี้ยง: ${widget.hotelName}',
+                            style: const TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ),
+                  )),
+              const Padding(
+                padding: EdgeInsets.only(left: 30, bottom: 8, right: 8, top: 8),
+                child: Text(
+                  'รีวิวสถานรับฝากสัตว์เลี้ยง',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
             ],
-          ),
-        );
+          );
+        } else {
+          // สร้างรายการข้อมูล
+          final clinic = snapshot.data![index - 1];
+          return Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                buildComponentPets(clinic, context),
+              ],
+            ),
+          );
+        }
       },
     );
   }

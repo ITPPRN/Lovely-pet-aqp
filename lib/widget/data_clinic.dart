@@ -199,8 +199,8 @@ class _DataClinicState extends State<DataClinic> {
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                  '${widget.id!.additionalNotes
-                      .toString()}\n test01\n test02 \n dgdgrdg'),
+                  widget.id!.additionalNotes
+                      .toString()),
             ),
           ],
         ),
@@ -266,7 +266,7 @@ class _DataClinicState extends State<DataClinic> {
   Align buildReviewButton() {
     List<String> stringList = ["ไม่มีคะแนน", "แย่", "พอใช้", "ดี", "ดีเยี่ยม"];
     String text = stringList[widget.id!.rating!.floor()];
-    String level = '${widget.id!.rating} $text';
+    String level = '${widget.id!.rating!.toStringAsFixed(1)} $text'; // แสดงทศนิยมหนึ่งตำแหน่ง
     return Align(
       alignment: Alignment.bottomLeft,
       child: TextButton(
@@ -274,12 +274,13 @@ class _DataClinicState extends State<DataClinic> {
           navigateListReview(widget.id!.id);
         },
         child: Text(
-          "$level จำนวนรีวิว >",
+          "$level  >",
           style: const TextStyle(color: Colors.black),
         ),
       ),
     );
   }
+
 
   ////////////////////////////////////////////////////////////////////////////
 

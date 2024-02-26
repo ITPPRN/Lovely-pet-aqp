@@ -97,7 +97,6 @@ class _LandingPageState extends State<LandingPage> {
             petList(),
             listBooking(),
             historyService(),
-            aa(),
             singOut(),
           ],
         ),

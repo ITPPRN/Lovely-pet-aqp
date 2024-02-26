@@ -9,6 +9,8 @@ import '../unity/api_router.dart';
 
 class EditProfile extends StatelessWidget {
   final String? token;
+  final String? name;
+  final String? phoneNumber;
 
   // Variables to store the values of Name and Phone Number fields
   final TextEditingController nameController = TextEditingController();
@@ -17,14 +19,16 @@ class EditProfile extends StatelessWidget {
   EditProfile({
     Key? key,
     required this.token,
+    required this.name,
+    required this.phoneNumber
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          //title: Text('Edit Profile'),
-          ),
+        //title: Text('Edit Profile'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
@@ -53,12 +57,15 @@ class EditProfile extends StatelessWidget {
                   maxLength: 10,
                   // Setting max length for Phone Number
                   keyboardType:
-                      TextInputType.phone, // Setting keyboard type to phone
+                  TextInputType.phone, // Setting keyboard type to phone
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
-                    postData(context);
+                    String nameIn = nameController.text.isNotEmpty ? nameController.text : name!;
+                    String numberIn = phoneNumberController.text.isNotEmpty ? phoneNumberController.text : phoneNumber!;
+
+                    postData(context,nameIn,numberIn);
                     // Add your save/update logic here
                   },
                   child: const Text('Save'),
@@ -71,7 +78,8 @@ class EditProfile extends StatelessWidget {
     );
   }
 
-  Future<void> postData(BuildContext context) async {
+  Future<void> postData(BuildContext context, String name,
+      String number) async {
     final url = Uri.parse("${ApiRouter.pathAPI}${SubPath.updateProfile}");
     try {
       final response = await http.post(
@@ -82,19 +90,20 @@ class EditProfile extends StatelessWidget {
         },
         body: json.encode(
           {
-            'name': nameController.text,
+            'name': name,
             // Using controller's value for Name
-            'phoneNumber': phoneNumberController.text,
+            'phoneNumber': number,
             // Using controller's value for Phone Number
           },
         ),
       );
 
       if (response.statusCode == 200) {
+        Navigator.of(context).pop();
         //routSer(response.body);
       } else {
         ExceptionLogin exceptionModel =
-            ExceptionLogin.fromJson(jsonDecode(response.body));
+        ExceptionLogin.fromJson(jsonDecode(response.body));
         errorDialog(context, '${exceptionModel.error}');
       }
     } catch (e) {
