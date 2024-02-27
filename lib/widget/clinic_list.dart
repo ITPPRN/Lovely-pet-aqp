@@ -10,6 +10,8 @@ import 'package:lovly_pet_app/unity/get_name_image.dart';
 import 'package:lovly_pet_app/widget/data_clinic.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../model/json-to-dart-model/review_json_to_dart.dart';
+
 class ClinicList extends StatefulWidget {
   const ClinicList({Key? key}) : super(key: key);
 
@@ -22,7 +24,7 @@ class _ClinicListState extends State<ClinicList> {
   String? username;
   String? password;
   List<ListClinicModel> hotels = [];
-
+  List<ReviewJsonToDart> listReview = [];
   final imageService = ImageService();
 
   Future<void> findU() async {
@@ -33,6 +35,49 @@ class _ClinicListState extends State<ClinicList> {
     setState(() {});
     // await getData();
   }
+
+  Future<int> getDataReview(int? id) async {
+    if (token != null) {
+      final url = Uri.parse("${ApiRouter.pathAPI}${SubPath.listReview}");
+      try {
+        final response = await http.post(
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: json.encode(
+            {
+              'id': id,
+            },
+          ),
+        );
+
+        if (response.statusCode == 200) {
+          final List<dynamic> jsonList = jsonDecode(response.body);
+          listReview =
+              jsonList.map((json) => ReviewJsonToDart.fromJson(json)).toList();
+          return listReview.length; // Return the number of reviews
+        } else {
+          ExceptionLogin exceptionModel =
+          ExceptionLogin.fromJson(jsonDecode(response.body));
+
+          // ignore: use_build_context_synchronously
+          errorDialog(context,
+              '${exceptionModel.error} stats = ${response.statusCode}');
+
+          return 0; // Return 0 if there was an error
+        }
+      } catch (e) {
+        // ignore: use_build_context_synchronously
+        errorDialog(context, '$e');
+        return 0; // Return 0 in case of an exception
+      }
+    } else {
+      return 0; // Return 0 if token is null
+    }
+  }
+
 
   /////////////////////////////////////
   Future<void> postData() async {
@@ -236,17 +281,29 @@ class _ClinicListState extends State<ClinicList> {
       "ดีมาก",
       "ดีเยี่ยม"
     ];
-    String text = stringList[clinic.rating!.floor()];
-    String level = '${clinic.rating!.toStringAsFixed(1)} $text';
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 0, 0, 8),
       child: Align(
         alignment: Alignment.bottomLeft,
-        child: Text("$level จำนวนรีวิว"),
+        child: FutureBuilder<int>(
+          future: getDataReview(clinic.id),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return  const Text("กำลังโหลด...");
+            } else if (snapshot.hasError) {
+              return Text("เกิดข้อผิดพลาด: ${snapshot.error}");
+            } else {
+              String text = stringList[clinic.rating!.floor()];
+              String level = '${clinic.rating!.toStringAsFixed(1)}/5.0 $text';
+              return Text("$level จำนวนรีวิว ${snapshot.data} รีวิว");
+            }
+          },
+        ),
       ),
     );
   }
+
 
   Padding buildTestLocation(ListClinicModel clinic) {
     return Padding(

@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:lovly_pet_app/model/json-to-dart-model/list_clinic.dart';
 import 'package:lovly_pet_app/unity/alert_dialog.dart';
@@ -7,6 +9,9 @@ import 'package:lovly_pet_app/unity/show_image.dart';
 import 'package:lovly_pet_app/widget/list_review.dart';
 import 'package:lovly_pet_app/widget/list_room.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../model/exception_login.dart';
+import '../model/json-to-dart-model/review_json_to_dart.dart';
 
 class DataClinic extends StatefulWidget {
   //const ListRoom({super.key});
@@ -263,23 +268,92 @@ class _DataClinicState extends State<DataClinic> {
       ),
     );
   }
+  List<ReviewJsonToDart> listReview = [];
+  Future<int> getDataReview(int? id) async {
+    if (widget.token != null) {
+      final url = Uri.parse("${ApiRouter.pathAPI}${SubPath.listReview}");
+      try {
+        final response = await http.post(
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ${widget.token}',
+          },
+          body: json.encode(
+            {
+              'id': id,
+            },
+          ),
+        );
+
+        if (response.statusCode == 200) {
+          final List<dynamic> jsonList = jsonDecode(response.body);
+          listReview =
+              jsonList.map((json) => ReviewJsonToDart.fromJson(json)).toList();
+          return listReview.length; // Return the number of reviews
+        } else {
+          ExceptionLogin exceptionModel =
+          ExceptionLogin.fromJson(jsonDecode(response.body));
+
+          // ignore: use_build_context_synchronously
+          errorDialog(context,
+              '${exceptionModel.error} stats = ${response.statusCode}');
+
+          return 0; // Return 0 if there was an error
+        }
+      } catch (e) {
+        // ignore: use_build_context_synchronously
+        errorDialog(context, '$e');
+        return 0; // Return 0 in case of an exception
+      }
+    } else {
+      return 0; // Return 0 if token is null
+    }
+  }
   Align buildReviewButton() {
-    List<String> stringList = ["ไม่มีคะแนน", "แย่", "พอใช้", "ดี", "ดีเยี่ยม"];
+    List<String> stringList = [
+      "ไม่มีคะแนน",
+      "แย่",
+      "พอใช้",
+      "ดี",
+      "ดีมาก",
+      "ดีเยี่ยม"
+    ];
+
+    // ดึงข้อมูลจำนวนรีวิวผ่าน Future
+    Future<int> countFuture = getDataReview(widget.id!.id);
+
+    // กำหนดข้อความที่จะแสดงบนปุ่ม
     String text = stringList[widget.id!.rating!.floor()];
-    String level = '${widget.id!.rating!.toStringAsFixed(1)} $text'; // แสดงทศนิยมหนึ่งตำแหน่ง
+    String level = '${widget.id!.rating!.toStringAsFixed(1)}/5.0 $text'; // แสดงทศนิยมหนึ่งตำแหน่ง
+
     return Align(
-      alignment: Alignment.bottomLeft,
-      child: TextButton(
-        onPressed: () {
-          navigateListReview(widget.id!.id);
+      alignment: Alignment.bottomLeft, // จัดแสดงในมุมล่างซ้าย
+      child: FutureBuilder<int>(
+        future: countFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const CircularProgressIndicator(); // แสดงอินดิเคเตอร์กำลังโหลดข้อมูล
+          } else if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}'); // แสดงข้อผิดพลาดหากเกิดข้อผิดพลาดในการดึงข้อมูล
+          } else {
+            // แสดงปุ่มเมื่อข้อมูลพร้อมใช้งาน
+            int count = snapshot.data ?? 0; // ใช้ข้อมูลจำนวนรีวิวที่ได้รับจาก Future
+            return TextButton(
+              onPressed: () {
+                navigateListReview(widget.id!.id); // นำทางไปยังรายการรีวิวเมื่อปุ่มถูกกด
+              },
+              child: Text(
+                "$level จำนวนรีวิว $count รีวิว >", // แสดงระดับการให้คะแนนและจำนวนรีวิว
+                style: const TextStyle(color: Colors.black), // กำหนดสีของข้อความเป็นสีดำ
+              ),
+            );
+          }
         },
-        child: Text(
-          "$level  >",
-          style: const TextStyle(color: Colors.black),
-        ),
       ),
     );
   }
+
 
 
   ////////////////////////////////////////////////////////////////////////////

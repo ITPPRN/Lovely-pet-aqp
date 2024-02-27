@@ -381,9 +381,11 @@ class _ListBookingState extends State<ListBooking> {
                                       const Size(
                                           100, 40)), // ขนาดขั้นต่ำของปุ่ม
                                 ),
-                                onPressed: () {},
+                                onPressed: () {
+                                  navigateReBook(clinic);
+                                },
                                 child: const Text(
-                                  'อัปเดตการจอง',
+                                  'ทำการจองใหม่',
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 15,

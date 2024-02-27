@@ -7,6 +7,8 @@ import 'package:lovly_pet_app/model/json-to-dart-model/booking_list_j_to_d.dart'
 import 'package:lovly_pet_app/unity/alert_dialog.dart';
 import 'package:lovly_pet_app/unity/api_router.dart';
 
+import 'list_room.dart';
+
 class WaiteWidget extends StatefulWidget {
   final List<BookingListJToD> waitBookings;
   final List<BookingListJToD> disapprovalBookings;
@@ -48,6 +50,12 @@ class _WaiteWidgetState extends State<WaiteWidget> {
       // ignore: use_build_context_synchronously
       errorDialog(context, '$e');
     }
+  }
+
+  void navigateReBook(BookingListJToD? booking) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return ListRoom(id: booking!.hotelId,token: widget.token,);
+    }));
   }
 
   @override
@@ -241,9 +249,11 @@ class _WaiteWidgetState extends State<WaiteWidget> {
                         minimumSize: MaterialStateProperty.all<Size>(
                             const Size(100, 40)), // ขนาดขั้นต่ำของปุ่ม
                       ),
-                      onPressed: () {},
+                      onPressed: () {
+                        navigateReBook(booking);
+                      },
                       child: const Text(
-                        'อัปเดตการจอง',
+                        'ทำการจองใหม่',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 15,
