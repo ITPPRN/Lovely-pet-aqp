@@ -197,7 +197,7 @@ class _DataClinicState extends State<DataClinic> {
             const Align(
               alignment: FractionalOffset.centerLeft,
               child: Text(
-                'เกี่ยวกับ',
+                'หมายเลขใบอนุญาต',
                 style: TextStyle(fontSize: 30),
               ),
             ),
